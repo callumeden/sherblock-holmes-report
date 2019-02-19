@@ -1,0 +1,28 @@
+\chapter{Design}
+
+\section{Importing the Bitcoin Blockchain}
+
+\subsection{Approaches}
+There exist several approaches to populating a database with the Bitcoin Blockchain; since we are working with a dataset of such vast scale, it is certainly a worthwhile investment at this stage to analyse the merits of each approach and decide which will be most suitable. Otherwise, taking a naive approach would risk a very time consuming, and potentially fragile process, which may hamper progression with subsequent stages of this project. 
+
+\subsubsection{Overview of Approaches}
+\begin{enumerate}
+    \item Running a full Bitcoin node [see \ref{background-nodes}]. Download the entire Blockchain, use a custom script to parse the files write the data to the database. Keep database up to date using long polling / \gls{rpc}. 
+    \item Leverage some of the work done by a previous project in the Department of Computing at Imperial for Blockchain health monitoring \cite{RefWorks:doc:5c6bd151e4b041254f892045}. The initial population of the database would require re-running the RPC approach used in this project, then creating a Kafka consumer to keep the database up to date. 
+    \item Combining the two approaches of above: create a custom script for initial database population, but then use the Bitcoin health service for keeping the database up to date. 
+\end{enumerate}
+
+
+\subsection{Neo4J}
+
+\subsubsection{Bulk Import Tool}
+Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
+\\\\ 
+The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is 'perioidc commit' which allows the transaction state to be intemittently commited to storage, and the memory Neo4J is using to hold this state to be flushed. 
+\\\\
+The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
+\\\\
+The constraints of this approach is that it requires the data to be in a CSV format, possibly requiring some conversion of the data format before the import can begin. 
+
+\subsubsection{Memory Recommendations}
+Neo4J provides a tool which advises how to configure memory parameters for Neo4J. By passing the command the database and the memory available to Neo4J, it recommends the suggested memory configuration (e.g. heap initial size, max size etc.). 

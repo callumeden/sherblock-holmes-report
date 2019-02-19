@@ -1,0 +1,31 @@
+\chapter{Introduction}
+
+Bitcoin is a peer-to-peer decentralised cryptocurrency system that now has the attention of the broad public population of non-specialists around the world. In early 2017, Bitcoin hit an all-time high trading price, consuming media attention all around the world, and subsequently making Bitcoin quite the household name. 
+\\\\
+Boasting the capability of making 'anonymous' payments to anyone across the globe, Bitcoin was relatively quickly adopted by those wishing to circumvent traditional payment mechanisms in order to reduce their traceability to criminal activity. The decentralised nature of Bitcoin creates difficulties for law enforcement to detect suspicious activity and identifying users. 
+\\\\
+The scale at which Bitcoin is used for illicit means can be observing the scale and sophistication of a darknet marketplaces, such as Silk Road. Furthermore, the illicit usage of Bitcoin isn't limited to trading on darknet marketplaces; Bitcoin has been known to be used in cases of extortion, ransom, malware and money laundering.  \cite{RefWorks:doc:5c49e7c4e4b0d339f6625a91}. 
+\\\\
+As our understanding and analytical tools of the Blockchain develops, we have the ability to gain more visibility into the real world that lies behind the mask of the pseudo-anonymous cryptocurrency, making the task of using Bitcoin in an illict way more challenging. In fact, several studies have shown it is possible to de-anonymise much of Bitcoins network activity and track the flow of bitcoin through analysis of the public ledger. Therefore, in this project I have set out to provide law enforcement with a tool to do exactly that. 
+\\\\
+More specifically, the key objectives of this project are:
+\begin{itemize}
+    \item Enable members of the Department of Computing at Imperial wishing to interact with Bitcoin Blockchain data to do so with ease using a specifically built API. 
+    \item Enable users to gain improved insights into Bitcoin activity through an easier to understand and use interactive representation of the data. 
+    \item Enable users to easily map from public addresses to known users/entities. 
+    \item Enable users to view transaction value between addresses by the \gls{fiat-money} value they represented at the time of the transaction. 
+\end{itemize}
+
+\\\\
+Having a tool that provides genuine insights into Bitcoin activity could be an invaluable resource to law enforcement teams investigating illegal activity; it could provide a level transparency to their investigations that they did not previously have, in addition to lowering the bar of entry to Bitcoin investigations, making it possible for insights to be drawn by users who are non-experts in the field of cryptocurrency. 
+
+
+\section{Contributions}
+
+
+\subsection{A foundation for future Bitcoin projects}
+Many research projects (including this one) require a full copy of the Blockchain downloaded and stored in a way that facilitates interaction with and analysis of the data. Until now, this has been a laborious and time-consuming task of downloading the full Bitcoin Blockchain, then parsing and writing this to a database. This process can have the timescale of multiple weeks and leads to much duplicated work and friction when beginning these types of projects. A challenge with this approach was the necessity to manually update the database with new Blockchain data, so data is historical only.
+\\\\
+Aiming to solve the above issues, I will be building a service which continuously consumes the most recent Bitcoin data and writes this data to the database. I then plan to build an API to interface with the database, allowing anyone in the department to interact with the data in a non-mutable way. 
+           
+ 
