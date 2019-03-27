@@ -1,9 +1,53 @@
 \chapter{Design}
 
-\section{Importing the Bitcoin Blockchain}
+\section{At my Disposal} 
+
+\subsection{Hardware}
+The primary hardware requirement is a very large amount of SSD storage. SSD storage can provide us with fast write speeds required to churn through the huge volume of data that must be written to Neo4J for the initial database setup.
+\\\\
+The hardware the department has at its disposal is a machine named 'satoshi' and has the following specification:
+\begin{itemize}
+    \item \textbf{Processor}: 24 core AMD EPYC 7401 
+    \item \textbf{Memory}: \todo{get machine specification}
+\end{itemize}
+However, I will be using a VM on this machine, allocated a generous amount of the resource available, but of course not all. Additionally, I have root access on this VM so I am not limited to the software I am able to install on it. 
+\\\\
+My VM has the following resource allocated to it (initially):
+\begin{itemize}
+    \item \textbf{Cores}: 16 cores 
+    \item \textbf{Memory}: 16GB
+    \item \textbf{Storage}: 3TB SSD
+\end{itemize}
+
+\subsection{Bitcoin Full Node}
+There already exists a Bitcoin Full Node running in a persistent Docker container which I am able to connect to. Using the RPC interface provided by Bitcoin Core, I am able to poll and fetch Bitcoin data. 
+
+\section{Technology Assessment}
+
+
+\subsection{Graph Databases}
+A graph database is a type of database where the relations between data are of equal importance to the data itself. Data does not need to be constricted to a pre-defined structure; rather it is stored using a flexible combination of nodes and relationships between them. 
+
+\subsubsection{Neo4J}
+Neo4J is an open-source, NoSQL graph-database providing ACID compliant transactions.
+
+\subsection{Why use a Graph DB for storing Bitcoin?}
+Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. 
+
+
+\subsection{Blockchain2graph}
+A company Blockchain Inspector who are 'using Artificial Intelligence to fight fraud in the Blockchain' have open-sourced a tool they use with the claim that it extracts Bitcoin data and writes it to a Neo4J database . 
+
+\subsection{Bitcoin to Neo4J Tool}
+There exists an open source tool, built by the author of the website \url{learnmeabitcoin.com}, which populates a Neo4J database with the entire Bitcoin Blockchain \cite{RefWorks:doc:5c98e031e4b068320632cef2}. This tool requires a full Bitcoin node to be run in order to have the .dat files stored locally; the tool will parse the .dat files and write them using Cypher queries to the Neo4J database. This approach has the advantage that it is a respected approach in the community to this task and has been cited a number of times by those seeking to achieve the same goal \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}; however, the tool will take several weeks (apparently 60+ days) to complete the import. 
+
+\subsection{Data Lake}
+A data lake is an approach to data storage which does not care about format, data can be structured, non-structured or partially structured; it essentially stores data in its raw-format and is often used as a halfway-house for storing data once ingesting data before it is processed and/or analysed. Apache Hadoop is an example of a technology able to host a data lake. There are also cloud hosted technologies, such as Amazon S3 or Microsoft Azure, that are able to provide a similar function. 
 
 \subsection{Approaches}
 There exist several approaches to populating a database with the Bitcoin Blockchain; since we are working with a dataset of such vast scale, it is certainly a worthwhile investment at this stage to analyse the merits of each approach and decide which will be most suitable. Otherwise, taking a naive approach would risk a very time consuming, and potentially fragile process, which may hamper progression with subsequent stages of this project. 
+
+
 
 \subsubsection{Overview of Approaches}
 \begin{enumerate}
@@ -18,7 +62,7 @@ There exist several approaches to populating a database with the Bitcoin Blockch
 \subsubsection{Bulk Import Tool}
 Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
 \\\\ 
-The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is 'perioidc commit' which allows the transaction state to be intemittently commited to storage, and the memory Neo4J is using to hold this state to be flushed. 
+The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is periodicc commit' which allows the transaction state to be intermittently committed to storage, and the memory Neo4J is using to hold this state to be flushed. 
 \\\\
 The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
 \\\\
@@ -26,3 +70,9 @@ The constraints of this approach is that it requires the data to be in a CSV for
 
 \subsubsection{Memory Recommendations}
 Neo4J provides a tool which advises how to configure memory parameters for Neo4J. By passing the command the database and the memory available to Neo4J, it recommends the suggested memory configuration (e.g. heap initial size, max size etc.). 
+
+\subsection{Running a full node}
+Running a full node (Bitcoin Core) would download the entire Bitcoin Blockchain to the current tip; the blockchain is currently at ~197GB\cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8} in size and would consume a considerable amount of storage, and time to download). This would provide the .dat files containing all Bitcoin Blockchain data to the date of download. 
+
+
+
