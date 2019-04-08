@@ -16,7 +16,7 @@ My VM has the following resource allocated to it (initially):
 \begin{itemize}
     \item \textbf{Cores}: 16 cores 
     \item \textbf{Memory}: 16GB
-    \item \textbf{Storage}: 3TB SSD
+    \item \textbf{Storage}: \~5TB SSD Free
 \end{itemize}
 
 \subsection{Bitcoin Full Node}
@@ -75,4 +75,68 @@ Neo4J provides a tool which advises how to configure memory parameters for Neo4J
 Running a full node (Bitcoin Core) would download the entire Bitcoin Blockchain to the current tip; the blockchain is currently at ~197GB\cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8} in size and would consume a considerable amount of storage, and time to download). This would provide the .dat files containing all Bitcoin Blockchain data to the date of download. 
 
 
+\section{Database Population Approach}
+\todo{DRAFT : IMPLEMENTATION} 
+There were two main phases to populating the database. The first phase was to fetch historical Bitcoin data from the Genesis block to the present day. 
+\begin{itemize}
+    \item Plugged into the health monitoring service. Used Flux streams, RPC to fetch the bitcoin data. Then parsed this data and wrote it to CSV files. 
+    \item Problem: Duplicates in the address file. Solution: Using GNU's sort -u on the address file, rather than using --ignore-duplicates as this massively slows down the bulk import process
+    \item Once the CSV files were generated, the Neo4J bulk import tool could be run, feeding a number of header files, the relationship files and the CSV files containing all of the data. 
+    
+\end{itemize}
 
+\subsection{Historic Data Population}
+An existing project in Java exists to extract historical data from several blockchains and write them to a Neo4J database.\todo{Cite the project} I augmented this project with functionality which performed the fetching of data using parallel WebFlux streams, and wrote the data in a CSV format, rather than to MongoDB. The points below outline the core steps taken to implement the historical population functionality. 
+
+\begin{itemize}
+    \item Introduced a new API endpoint for Admin usage. The new endpoint was named \texttt{extractBitcoinToNeo4j}. This accepted two arguments as path variables, \texttt{fromHeight} and \texttt{toHeight} which are to be used to define the range of blocks to fetch data from. 
+    \item Using the parameters \texttt{fromHeight} and \texttt{toHeight}, I then generate a Flux stream which uses RPC to invoke the method \texttt{getBlockHash} on a \textit{bitcoind} instance running in a container on the same machine. 
+    \item The Flux stream of block hashes are then mapped to the actual block data using flux's \texttt{flatMap} operation and by invoking the method \texttt{getBlock}, passing it the block hash from the previous step. 
+    \item The block data is retrieved and deserialized to an intermediary representation in Java. Each block will then be written to a CSV file in the format required for an import into Neo4J. 
+    \item The retrieval of a single block will then kick off the process of fetching transactions; the Flux of blocks will be mapped to individual transactions by fetching each of the transaction ID's in the block and again using RPC to invoke the \texttt{getrawtransaction} on the \textit{bitcoind} instance in order to fetch all the data for each transaction. 
+    \item Each retrieved transaction will be written to CSV, in addition to writing the relationships between transactions, blocks and outputs to their own CSV files. 
+\end{itemize}
+
+\subsection{Data Format}
+\subsubsection{Data Nodes}
+\begin{itemize}
+    \item \texttt{BLOCK} : A Bitcoin block, unique id being the block hash. 
+    \item \texttt{TRANSACTION} : A Bitcoin transaction, unique id the txid property
+    \item \texttt{OUTPUT} : A transaction output, unique id the txid property concatenated with the outputs index in the transaction
+    \item \texttt{ADDRESS} : A Bitcoin public address, unique id the public address itself
+\end{itemize}
+
+\subsubsection{Relationships}
+I created several types of relationships to exist between nodes in Neo4J. The relationships can be seen in a visual representation below in figure \ref{fig:neo4j-layout}.
+\begin{itemize}
+    \item \texttt{CHAINED\_FROM} Exists between two blocks; represents the relationship between a block and it's parent block. 
+    \item \texttt{MINED\_IN} Exists beween a transaction and a block. Represents the relationship between a transaction and the block it was mined in. 
+    \item \texttt{LOCKED\_TO} Exists between a transaction output and an address. Represents the relationship between an output, and who it can be spent by. 
+    \item \texttt{INPUTS} Exists between a transaction output and a transaction. Describes the relationship between an output and the transaction it later funds. 
+    \item \texttt{OUTPUTS} Exists between a transaction and a transaction output. Shows the relationship between a transaction and the new outputs it generates. 
+    \item \texttt{COINBASE} Exists between a transaction output and a block. Represents the special type of input to a transaction which generates new bitcoin, and is associated with a block as it was the miners reward for successfully mining the block. 
+\end{itemize}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/neo4j-annotated}\\[0.5cm] 
+  \caption{The nodes and relationships as visualised using the Neo4J Web UI}
+  \label{fig:neo4j-layout}
+\end{figure}
+
+\subsection{Challenges \& Solutions:}
+\subsubsection{Efficiency}
+With multiple cores at my disposal, it would only be logical to try and distribute the workload across the cores. Fortunately, WebFlux conveniently provides functionality to do this; by adding \texttt{.parallel(n)} to my Flux stream, the workload is divided up into \texttt{n} rails. Then subsequently applying the \texttt{.runOn(Schedulers.parallel())} mapping, WebFlux is told to parallelise this work by running each rail on a separate core.  \todo{Some experimentatin figures for the speed up??}
+
+\subsubsection{Job failure mitigation}
+When an error from the client is received, possibly due to being overwhelmed with requests, it would be far from ideal for a single failure to cause the entire job to fail. Therefore I mitigated job failure by adding retry logic when requesting using the Reactive Client, so that failures will be handled by re-trying with a delay (the delay necessary to allow time for producer recovery in the case of being overwhelmed). Additionally, if an unexpected error occurs that I have not anticipated, the entire job may fail. Therefore, when performing the download, I ensured to do so in incremental batches. E.g I first download data for blocks 0-100,000 then 100,001-200,000 and so on. Therefore, if a failure does occur, progress from other blocks has been saved from successful runs and only the batch which failed needs to be re-run. 
+
+\subsubsection{Writing concurrently from several threads}
+Although the above parallelisation improves the efficiency of the overall download process, it introduced the problem of multiple threads writing to a single CSV file concurrently, which led to data in the CSV files being malformed where threads have written data chunks in an interleaving fashion. 
+\\\\
+\textbf{Fix interleaving writes with a lock:} Clearly each line in the file needs to be written atomically, so I introduced a lock that each thread must hold in order to perform a write to a CSV file. However, I quickly realised that this will create a significant bottleneck in the workflow and developed an alternative solution.
+\\\\
+\textbf{Fix interleaving writes with per thread files:} To enable parallel file writing and prevent the bottleneck of acquiring locks, I created a CSV file writer for each thread, for each data type. For example, the CSV file containing the block nodes will be named \texttt{block-data-thread-1.csv}, \texttt{block-data-thread-2.csv} and \texttt{block-data-thread-3.csv} etc. With this solution, each write can occur without risk of another thread also attempting to write, so the overhead of acquiring a lock for concurrent access is now redundant. \todo{Compare runs with and without}
+\\\\
+
+ 
