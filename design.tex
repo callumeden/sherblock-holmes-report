@@ -7,6 +7,7 @@ Technical objectives I aim to acheive
     \item Implement a mechanism for writing new Bitcoin data to the database upon new blocks being confirmed by the network.
     \item Implement a system for fetching historical Bitcoin price data for each Block at the time it was mined.
     \item Implement a system for building a dataset which maps bitcoin addresses to known entities of the bitcoin networks (e.g. exchanges, gambling sites, other services etc.) and generate relationships to write to the database for these mappings.
+    \item Implement an API which interfaces the database
     \item \todo{Fill this in}
 \end{enumerate}
 
@@ -38,23 +39,16 @@ There already exists a Bitcoin Full Node running in a persistent Docker containe
 \subsection{Graph Databases}
 A graph database is a type of database where the relations between data are of equal importance to the data itself. Data does not need to be constricted to a pre-defined structure; rather it is stored using a flexible combination of nodes and relationships between them. 
 
+\subsubsection{Why use a Graph DB for storing Bitcoin?}
+Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. 
+
 \subsubsection{Neo4J}
 Neo4J is an open-source, NoSQL graph-database providing ACID compliant transactions.
 
-\subsection{Why use a Graph DB for storing Bitcoin?}
-Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. 
 
 
-
-
-
-\subsection{Data Lake}
-A data lake is an approach to data storage which does not care about format, data can be structured, non-structured or partially structured; it essentially stores data in its raw-format and is often used as a halfway-house for storing data once ingesting data before it is processed and/or analysed. Apache Hadoop is an example of a technology able to host a data lake. There are also cloud hosted technologies, such as Amazon S3 or Microsoft Azure, that are able to provide a similar function. 
-
-\subsection{Approaches}
+\section{Database Population Approach}
 There exist several approaches to populating a database with the Bitcoin Blockchain; since we are working with a dataset of such vast scale, it is certainly a worthwhile investment at this stage to analyse the merits of each approach and decide which will be most suitable. Otherwise, taking a naive approach would risk a very time consuming, and potentially fragile process, which may hamper progression with subsequent stages of this project. 
-
-
 
 \subsubsection{Overview of Approaches}
 \begin{enumerate}
@@ -62,19 +56,6 @@ There exist several approaches to populating a database with the Bitcoin Blockch
     \item Leverage some of the work done by a previous project in the Department of Computing at Imperial for Blockchain health monitoring \cite{RefWorks:doc:5c6bd151e4b041254f892045}. The initial population of the database would require re-running the RPC approach used in this project, then creating a Kafka consumer to keep the database up to date. 
     \item Combining the two approaches of above: create a custom script for initial database population, but then use the Bitcoin health service for keeping the database up to date. 
 \end{enumerate}
-
-
-\subsection{Neo4J}
-
-
-\subsubsection{Memory Recommendations}
-Neo4J provides a tool which advises how to configure memory parameters for Neo4J. By passing the command the database and the memory available to Neo4J, it recommends the suggested memory configuration (e.g. heap initial size, max size etc.). 
-
-\subsection{Running a full node}
-Running a full node (Bitcoin Core) would download the entire Bitcoin Blockchain to the current tip; the blockchain is currently at ~197GB\cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8} in size and would consume a considerable amount of storage, and time to download). This would provide the .dat files containing all Bitcoin Blockchain data to the date of download. 
-
-
-\section{Database Population Approach}
 
 \subsection{Previous Work}\label{design-db-previous-work}
 \subsubsection{Bitcoin to Neo4J Tool : Open Source Project}
@@ -91,6 +72,9 @@ A company Blockchain Inspector who are 'using Artificial Intelligence to fight f
 
 \subsubsection{Analysis of previous work}
 TokenAnalyst's approach seems to best describe the ideal situation for this project; a efficient bulk import into Neo4J and a mechanism for keeping the database up to date. There exists no open source implementation for their work, only a high level description of what they did in their blog post. Max's work, however, is available to me and his work in fetching data using RPC could prove useful to my project. The Bitcoin to Neo4J tool would not be a feasible approach and can be immediately ruled out due to the time requirement of several weeks for the tool to complete; this would not be acceptable for the timescale of this project. As for Blockchain Inspector's open-source solution, upon inspection of the code, it seems the bulk import process relies on an existing database containing the entire Bitcoin Blockchain, and therefore seems to be more of a tool to migrate from a traditional database to a relational one (Neo4J). It is therefore not very applicable to my work, creating an intermediate database storing the Bitcoin Blockchain for the bulk import would be unnecessary and expensive. 
+
+\subsection{Running a full node}
+Running a full node (Bitcoin Core) would download the entire Bitcoin Blockchain to the current tip; the blockchain is currently at ~197GB\cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8} in size and would consume a considerable amount of storage, and time to download). This would provide the .dat files containing all Bitcoin Blockchain data to the date of download. 
 
 \subsection{High Level Plan}
 There were two main phases to populating the database. First, historic data population. Then the second phase will be keeping the database up to date with new data as it arrives. Taking inspiration from TokenAnalyst's approach, and extending the existing work by Max Baylis as described in section \ref{design-db-previous-work}, I created a tool to succesfully download the entire Bitcoin Blockchain, write it to a Neo4J database and keep it up to date in just a day.
@@ -160,9 +144,9 @@ Although the above parallelisation improves the efficiency of the overall downlo
 While generating the CSV files, we fetch the outputs of a transaction an the addresses each output is locked to. Since while generating the CSV, there was no way of efficiently checking if we had already seen an address before, we simply had to write every address we see to the CSV file. When running the Neo4J bulk import job, we encounter an error as we attempt to define an address node twice. A solution considered was to use a flag \texttt{--ignore-duplicate-nodes} that can be used when invoking the bulk import tool. This would simply ignore any address nodes that have already been defined, solving our problem. However, as TokenAnalyst found in their work \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, the \texttt{--ignore-duplicate-nodes} flag massively slows down the import process, as Neo4J needs to check every single node to see if the one its adding already exists. Their solution, which I adopted, was to use GNU's \texttt{sort - u} command, which allows us to generate a new address CSV file with only the unique addresses. TokenAnalyst found this process to take around 30 minutes \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, and is therefore a good investment in speeding up the entire import process. 
 \\\\
 \textbf{Sanity checking the number of addresses: } For blocks 0-570,000, I used the \texttt{wc -l} command to count how many address entries that had been written to CSV (including all duplicates). This sum came to 1,052,218,849 entries. Performing the unique sorting operation, using the aforementioned \texttt{sort -u} command, which took a total time of 50 minutes 3 seconds,  I produced an address file containing only unique addresses, and again performed a count operation which came to 495,668,754 unique addresses.
-
+\\\\
 In order to sanity check this value, I used the data provided by blockchain.info; they provide a daily measurement of the number of \textbf{active} addresses in Bitcoin each day. Clearly, our figure will be the cumulative sum of this figure since the Genesis block. In order to easily calculate the expected number of unique addresses using their data, I used their functionality to export this data to CSV and performed a sum over this data. 
-
+\\\\
 The block at height 570,000 was mined on 3rd April 2019. The data from blockchain.com has a data point for the 30th of March 2019 
 
 \subsection{Performing the Neo4J Import}
@@ -250,4 +234,61 @@ The first thing to consider was how to represent that an address is controlled b
 \subsubsection{Performing the address matching} 
 From step \ref{design:fetch-entity-data} we have a JSON mapping each entity type to a list of addresses. From importing the Bitcoin Blockchain into CSV format, and de-duplicating addresses, we have a CSV containing all distinct addresses to have ever been seen on the chain. I now have the task of creating a new \texttt{HAS\_ENTITY} relationship for each address in the CSV that occurs in the entity mapping JSON file. If I were to take a naive approach here, where I would compare each address from the blockchain against each address I have a mapping for, I would have an algorithm which performs $\mathcal{O}(nm)$ address matches, where $n$ is the number of addresses found on the blockchain and $m$ the number of addresses I have an entity mapping for. 
 \\\\
-A better approach would be to use a Trie data structure. The Trie data structure will be a more efficient method of storing the entity mapping address data since it only need to store once the inevitable common prefix's of the millions of addresses. The primary benefit, though, is for performing the address matching. For each address in the blockchain, we only need to walk at most the height of the tree once, so we only require $\mathcal{O}(n)$ address matches. 
+A better approach would be to use a Trie data structure. The Trie data structure will be a more efficient method of storing the entity mapping address data since it only need to store once the inevitable common prefix's of the millions of addresses. The primary benefit, though, is for performing the address matching. For each address in the blockchain, we only need to walk at most the height of the tree once, so we only require $\mathcal{O}(n)$ address matches. I was able to simply implement this approach using Tries by using Google's pygtrie library. 
+
+\subsection{Performing the bulk historical import}
+
+\subsubsection{Invoking the import job}
+I created a script to wrap the execution of the import job, providing the benefits of version control and reproducibility. This script first uses globbing to build the list of input files for each type of node and relationship. It then invokes the import command as shown below. Some additional arguments were \textt{--max-memory} to override the default 90\% memory usage to use slightly more. The argument \textt{--ignore-missing-nodes} was to prevent a long job failing simply due to a single relationship referring to a non existing node, and to rely on these bad relationships being reported to the file as defined by the \textt{--report-file} option for manual investigation. 
+\\\\
+\begin{lstlisting}[language=Bash]
+$1/bin/neo4j-admin import 
+  --nodes:ADDRESS $address_files_all
+  --nodes:BLOCK $block_files_all
+  --nodes:COINBASE $coinbase_files_all
+  --node:OUTPUT $output_files_all
+  --nodes:TRANSACTION $transaction_files_all 
+  --nodes:ENTITY $entity_files_all
+  --relationships:CHAINED_FROM $relation_chained_from_files 
+  --relationships:COINBASE $relation_coinbase_files 
+  --relationships:INPUTS $relation_inputs_files 
+  --relationships:LOCKED_TO $relation_locked_to_files 
+  --relationships:MINED_IN $relation_mined_in_files 
+  --relationships:OUTPUTS $relation_outputs_files 
+  --max-memory 95% 
+  --ignore-missing-nodes true 
+  --report-file "neo4j-import-debug-report.log" 
+\end{lstlisting}
+
+\subsubsection{Challenges}
+While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. This allowed the import tool to store information in virtual memory once physical memory had been exhausted. 
+
+\subsubsection{Result}
+The import operation for the first 570,000 Bitcoin Blocks completed in 5 hours, 32 minutes and 54 seconds. The operation consumed 22.96GB of memory and created 1.964 billion nodes, 3.52 billion relationships and 3.03 billion properties. There were no errors or bad relationships reported. 
+
+\section{Building a REST API to interface Neo4J}
+
+\subsection{Technology}
+Java, Spring Data, Spring Boot
+
+\subsection{Implementation}
+
+\begin{itemize}
+    \item build model classes to represent the nodes, used @Relationship annotation to fetch nodes a 1 hop relationship away
+    \item had to use jsonignoreentities to represent infinite recursion fetching entities that include eachother through the relationship property 
+    \item build a rest controller which exposes an api to fetch each type of node given their id
+    
+\end{itemize}
+
+
+\section{Building the UI} 
+\begin{itemize}
+    \item why angular? some familiarity with it from previous projects. supports data binding which is important for this application. has tools like angular cli to quickly scaffold out project which reduces setup time. well supported in the front end community. 
+    \item uses angular CLI to scaffold out the project
+    \item uses D3 for drawing svg nodes and links in a force directed graph 
+    \item uses RXJS for asynchronous http calls and implementing publish/subscribe patterns for communicating data across several views (e.g search results are pushed to a data observable which is listened to by the investigation view which renders new nodes whenever new data arrives) 
+    \item stage 1: search by address. node rendering, relation expansions
+    \item stage 2: path finding between addresses
+    
+    
+\end{itemize}
