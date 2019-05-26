@@ -137,7 +137,7 @@ The onion router (tor) is an infrastructure for providing private communication 
 
 It is possible to define a number of heuristics that can be used in an effort to group distinct Bitcoin addresses so that they can be collectively associated with individual user. This section outlines some of these heuristics that use data from the Blockchain to help cluster addresses belonging to the same user.
 
-\subsection{Multi-input transactions}
+\subsection{Multi-input transactions}\label{background:multi-input-tx}
 Multi-input transactions will be required when some user, say Alice, wishes to transfer some funds, say the value of $v$ to some other user Bob; however, Alice does not hold a single bitcoin denomination that is greater or equal to $v$ and therefore must combine multiple smaller denominations to meet/exceed the value of $v$. It is therefore relatively trivial to conclude by inspecting the inputs of these transactions, that the addresses of each of the inputs are in-fact owned by the same user Alice \cite{RefWorks:doc:5c3de14be4b042abd3bcc2c6}.
 
 \subsection{Change Addresses}
@@ -164,7 +164,7 @@ The study 'Identifying Bitcoin users by transaction behaviour' \cite{RefWorks:do
 \section{Bitcoin address clustering (off-chain)}
 The previous section outlines heuristics for using on-chain data for address clustering, however it is possible that there exists more public information available elsewhere on the internet that can be used to help cluster addresses \cite{RefWorks:doc:5c3ef27be4b03c7dd82ce4e6}. 
 
-\subsection{Tag Collection}
+\subsection{Tag Collection}\label{background-tag-collection}
 Tag collection is the process of trying to find a Bitcoin address that is mentioned in the same data frame as some tag (such as a username or a company name) \cite{RefWorks:doc:5c3ef27be4b03c7dd82ce4e6}. Therefore, passive tag collection can be carried out by crawling sites where this information is likely to appear, such as social media, bitcoin forums and dark-web marketplaces (for example, Silkroad). Tagging in this manner may allow addresses to be correlated to known Bitcoin businesses, or categorised in the type of service they are, such as an exchange, marketplace, mining pool, mixer, gambling etc. 
 
 
@@ -249,3 +249,22 @@ There exist a number of companies claiming to offer similar solutions to Bitcoin
     \item \textbf{Block Explorer:} Similar to Blockchain Explorer; providing visibility to information associated with single addresses and blocks. Also incorperates market information for many other cryptocurrencies and a cryptocurrency related news feature. [See https://blockexplorer.com/]. 
 
 \end{itemize}
+
+
+\subsection{Import Methods : Previous work}\label{design-db-previous-work}
+There exists previous work in the domain of downloading the Bitcoin Blockchain. I first researched and assessed these implementations. 
+
+\subsubsection{Bitcoin to Neo4J Tool : Open Source Project}
+There exists an open source tool, built by the author of the website \url{learnmeabitcoin.com}, which populates a Neo4J database with the entire Bitcoin Blockchain \cite{RefWorks:doc:5c98e031e4b068320632cef2}. This tool requires a full Bitcoin node to be run in order to have the .dat files stored locally; the tool will parse the .dat files and write them using Cypher queries to the Neo4J database. This approach has the advantage that it is a respected approach in the community to this task and has been cited a number of times by those seeking to achieve the same goal \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}; however, the tool will take several weeks (apparently 60+ days) to complete the import. 
+
+\subsubsection{Max Baylis : Imperial MSc Project 2018}\label{background-max-baylist-project}
+Max undertook a project titled 'Blockchain Data Analytics and Health Monitoring' within the Department of Computing at Imperial \cite{RefWorks:doc:5c6bd151e4b041254f892045} which involved bulk extracting data from several blockchains and writing that data to a MongoDB database. He additionally used Kafka for providing clients with the most recent blockchain updates which complimented the historical data in the database. This data was used for providing blockchain analytics in a web based environment \cite{RefWorks:doc:5c6bd151e4b041254f892045}. 
+
+\subsubsection{TokenAnalyst : Medium Blog}
+TokenAnalyst wrote a blog article on Medium with the title 'How to load Bitcoin to Neo4J in a day' \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}. They describe their process of using RPC to fetch the data, writing the data to a 'data lake' in a compressed Arvo format, generating CSV's from the compressed files and feeding them to Neo4J's bulk import tool. Similar to Max's work, they then use Kafka for steaming the most recent Bitcoin data to a tool which writes it to Neo4J to keep the database up to date. 
+
+\subsubsection{Blockchain2graph : Open Source Project}
+A company Blockchain Inspector who are 'using Artificial Intelligence to fight fraud in the Blockchain' have open-sourced a tool they use with the claim that it extracts Bitcoin data and writes it to a Neo4J database \cite{RefWorks:doc:5cac6184e4b01c076c63e173}.
+
+\subsubsection{Analysis of previous work}
+TokenAnalyst's approach seems to best describe the ideal situation for this project; a efficient bulk import into Neo4J and a mechanism for keeping the database up to date. There exists no open source implementation for their work, only a high level description of what they did in their blog post. Max's work, however, is available to me and his work in fetching data using RPC could prove useful to my project. The Bitcoin to Neo4J tool would not be a feasible approach and can be immediately ruled out due to the time requirement of several weeks for the tool to complete; this would not be acceptable for the timescale of this project. As for Blockchain Inspector's open-source solution, upon inspection of the code, it seems the bulk import process relies on an existing database containing the entire Bitcoin Blockchain, and therefore seems to be more of a tool to migrate from a traditional database to a relational one (Neo4J). It is therefore not very applicable to my work, creating an intermediate database storing the Bitcoin Blockchain for the bulk import would be unnecessary and expensive.

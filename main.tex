@@ -16,9 +16,10 @@
 % load glossary definitions
 \input{glossary}
 
-
+\usepackage{microtype}
 % load title page
 \begin{document}
+
 \input{titlepage}
 
 % page numbering etc.
@@ -51,8 +52,27 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \include{design}
 
+\chapter{Contributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{blockchaindownload}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{historicalpricedata}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{entitytagging}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{databasepopulation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{clustering}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{investigationtool}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% bibliography
 \bibliographystyle{unsrt}
 \bibliography{references}
