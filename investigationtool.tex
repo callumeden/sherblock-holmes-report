@@ -18,14 +18,65 @@ D3.js is a JavaScript library that can be used for generating SVG visualisations
 \textbf{Alternatives to D3}: There exist some visualisation tools that have embedded connections to Neo4J. I initially considered these tools as a possible simplification of the visualisation element of the web application; however, these tools such as Neovis.js and Popoto.js seem too restrictive in that their data format must align with the data format in Neo4J. They appear to be very suitable for visually mirroring the data in Neo4J, but I believe for this project, with the scope for many visual features with data persisted in locations other than Neo4J, this will prove to be too constraining. As for other JavaScript libraries similar to D3 with high customisability, I chose D3 due to the abundance of documentation, community support and example projects that D3 has. 
 
 \subsection{Implementation}
+The most significant features provided by Angular that I used throughout the project were:
+\begin{itemize}
+    \item \textbf{Components \& Templates} - specifically: two-way data binding. The template will render the data defined in the component; changes to this data will lead to the template dynamically re-rendering to display the updated value. The component can listen to event hooks on the template, such as a click of a button or a value inserted, to retrieve user input/interactions from the template.
+    \item \textbf{Services} - a way of communicating data within the app and externally from the app. Bitcoin service is responsible for making requests to the backend API to search for data in the database. The investigation service is largely used to communicate data across the components. For instance, the search component supplies the investigation service with search result data. This is published to an observable, which is being listened to by the investigation component which renders the new data as it arrives. Services help with separation of dependencies between components that should not need to know about each-other. 
+    \item \textbf{Dependency Injection} - Injectable components (such as services) are requested by components that require them, rather than creating the dependencies them-self. This improves efficiency and modularity. 
+\end{itemize}
+
+\subsubsection{Routes}
+There existed two main routes within the application:
+\begin{itemize}
+    \item \texttt{/search} : Loads the search component
+    \item\texttt{/investigation} : Loads the investigation component (only if navigated there from the search form, otherwise it re-directs back to \texttt{/search}).
+\end{itemize}
+
+\subsubsection{Architecture}
+The overall architecture of the web application can be seen in figure \ref{fig:webapp-architecture}. The components shown in the figure have the following roles:
+\begin{itemize}
+    \item Search Component: Renders the search forms. Validates users input, performs requests to fulfill searches using Bitcoin Service. Provides search results to Investigation Service. 
+    \item Investigation Component: Subscribes to the many data streams of the Investigation Service and coordinates adding new nodes and links to the graph. 
+    \item Graph Component: Listens to updates of the node/link data and updates the graph when data changes and initialises/re-starts the simulation when required. 
+    \item Link Component: Exists simply as a template for the Link SVG on the Graph. Some logic around showing Output values in various currencies and timestamps. 
+    \item Node Component: Handles user interactions with the nodes on the graph. Identifies hover actions and double clicks and communicates accordingly with the services to inform other components of the actions. E.g: On hover, passes the node information to the App Service for displaying in the node data component. Additionally handles the pulsing animation while a node is requesting data to render its neighbours. 
+    \item Add Node Component: Provides a form for adding custom nodes to the graph. Validates form data and publishes new data to the Investigation service.  
+    \item Add Link Component: Provides a form for crating a link between custom nodes in the graph and any other node. Validates the form and publishes new data to the Investigation Service. 
+    \item Node Data Component: Responsible for rendering a overlay component displaying information about the node currently being hovered over. This data is published to an Observable in the App service and is subscribed to in order to receive updates. 
+    \item Draggable Directive: Applies D3's draggable behaviour to a node. 
+    \item Zoomable Directive: Applies D3's zoomable behaviour to the graph. 
+    \item Investigation Service: Mainly supplies data to the investigation component using Observables. For example, an observable to publish address data looks like this:
+    \begin{lstlisting}[breaklines=true, basicstyle=\small]
+        private addressData = new BehaviourSubject(null);
+        currentAddressData = this.addressData.asObservable();
+        
+        supplyNewAddressData(newAddressData: Address) {
+            this.addressData.next(newAddressData);
+        }
+    \end{lstlisting}
+    Then in the investigation component, a subscription to the observable will look like this:
+    \begin{lstlisting}[breaklines=true, basicstyle=\small]
+        this.investigationService.currentAddressData.subscribe((newAddressData: Address) => {
+            //handle data update
+        });
+    \end{lstlisting}
+    \item Bitcoin Service: Uses Angular's HTTP library to make HTTP requests to the backend API to fetch new data. The calls return an observable with generic type corresponding to the data model it will populate. For example, a call to fetch an address node is:
+    \begin{lstlisting}[breaklines=true, basicstyle=\small]
+        return this.http.get<Address>(this.serviceDomain + "/bitcoin/getAddress/" + address + this.buildQueryParams()); 
+    \end{lstlisting}
+    \item App Service: Uses observables to facilitate the transfer of data between node components and node data components. 
+    \item D3 Service: Handles calls to D3 to implement Draggable and Zoomable behaviours. 
+\end{itemize}
+
 \begin{sidewaysfigure}[h!]
   \centering
-  \includegraphics[width = 22cm]{./figures/angular-webapp-architecture}\\[0.5cm]
+  \includegraphics[width = 22cm]{./figures/webapp-architecture}\\[0.5cm]
   \caption{Architecture of the Web Application}
   \label{fig:webapp-architecture}
 \end{sidewaysfigure}
 
-\subsection{Search By Address}
+\subsection{Features}
+\subsubsection{Search By Address}
 An investigation can be initiated by searching for a particular bitcoin address. The search form as shown in figure \ref{fig:neo4j-screenshot-search-form}, when submitted, loads the investigation view displaying the address and it's immediate neighbours as nodes in the graph, also detailing the relationship types each link represents, as shown in figure \ref{fig:neo4j-screenshot-basic-address-nodes}. 
 
 \begin{figure}[h!]
@@ -42,7 +93,7 @@ An investigation can be initiated by searching for a particular bitcoin address.
   \label{fig:neo4j-screenshot-basic-address-nodes}
 \end{figure}
 
-\subsection{Node information on hover}
+\subsubsection{Node information on hover}
 Information associated with each type of node is shown on hover. For example, hovering over a block will provide the time it was mined, its hash and the historical exchange rates at the time of mining (see fig \ref{fig:block-info-on-hover}). The node being hovered over will expand in size to indicate which node the information is being displayed for. There is also an option to dismiss the information box using the cross symbol in the top right corner. 
 \\\\
 Additionally, clicking on each field in the node information box automatically copys that data to the users clipboard. This further improves the user experience as there exists less steps to copying data (such as long ID's or hashes) for further investigation. The data copied will also be copied without the extraneous surrounding data such as labels, currency symbols or data formatting (specifically, selecting dates will copy the epoch time in milliseconds to the clipboard). 
@@ -54,7 +105,7 @@ Additionally, clicking on each field in the node information box automatically c
   \label{fig:block-info-on-hover}
 \end{figure}
 
-\subsection{Link Data}
+\subsubsection{Link Data}
 A primary use of the investigation tool will be to investigate the flow of funds; it is therefore important to make this information visible and digestible. Therefore, each link representing a flow of funds (between \texttt{OUTPUT} and \texttt{TRANSACTION} nodes) displays the value of the funds in BTC and whichever fiat currency the user selects as their preference when searching (GBP, EUR, USD). The link data also provides a timestamp representing the time the transaction was included in the blockchain; this provides context to the value of the output respective to their fiat currencies. 
 \\\\
 The screenshot shown in figure \ref{fig:link-data} exemplifies the importance of a fiat currency conversion: the same unit of 0.5 BTC is output by transaction \texttt{432f18...} as is input into transaction \texttt{96455e...}, however their equivalent fiat value in USD is dramatically different at $\$1,688$ when the output is produced and $\$2,102$ when the output is spent. The timestamp will also provide context around the timeline of this transfer of funds, in addition to possibly explaining differences in fiat currencie exchange rates.
@@ -67,14 +118,14 @@ The screenshot shown in figure \ref{fig:link-data} exemplifies the importance of
   \label{fig:link-data}
 \end{figure}
 
-\subsection{Traverse the Graph}
+\subsubsection{Traverse the Graph}
 Double clicking on a node initiates a request to load that nodes immediate neighbours. Once the request receives a response, the nodes neighbours are added to the existing graph as new nodes and the necessary links are created. Each new node can then also be double clicked and the process will recurse. 
 \\\\
 Sometimes the time between initiating a request and receiving a response isn't near instantaneous, perhaps due to demand on the database or a greater response size. Therefore, to feedback to the user that a request has been initiated, to prevent them trying to issue multiple requests or thinking that a node has no neighbours, a node will pulse in size while a request is pending. 
 \\\\
 Additionally, in an investigation view with many nodes, it may not be clear which nodes already have had their neighbouring nodes requested (those without neighbours, for instance). Therefore, nodes will have a thick black border until their nodes have been expanded (see both green transaction nodes in fig \ref{fig:link-data} and will have their border removed once expanded (see the orange output node in fig \ref{fig:link-data}).
 
-\subsection{Link Dependant Colour and Size of nodes}
+\subsubsection{Link Dependant Colour and Size of nodes}
 To indicate the differences in a nodes connectivity among the many other nodes in the graph, a nodes colour and size adjusts based on the number of links it has outgoing and incident on it. The rate at which a nodes colour and size changes is normalised by the total number of links in the graph. A node with 30\% of the links in a graph of 10 links should have the same size/colour as a node with 30\% of the links in a graph with 100 links. This feature helps with visualising potentially more important nodes in a graph, and also assists with visual arrangement, by creating a greater circumference to place neighbouring nodes around a node with many links. 
 \\\\
 An example of this can be seen in figure \ref{fig:address-nodes-colour-size-change} where an address \texttt{1HJtS7...} has more links than another address \texttt{1HeYaB...} and therefore has a higher colour density and larger radius. The figure also exemplifies this for output node \texttt{b777...0} which has more links than the other output nodes, and is therefore slightly larger and of a higher density colour.
@@ -87,19 +138,63 @@ An example of this can be seen in figure \ref{fig:address-nodes-colour-size-chan
   \label{fig:address-nodes-colour-size-change}
 \end{figure}
 
-\subsection{Add nodes with complementary}
+\subsubsection{Selecting Fiat Currencies}
+The Link Data feature, as shown in figure \ref{fig:link-data} displays the fiat currency conversion of output values. The fiat currency is configurable from the address search form, as shown in figure \ref{fig:select-fiat-currencies}. See figure \ref{fig:select-fiat-currencies-gbp} and \ref{fig:select-fiat-currencies-usd} for the graph differences when selecting USD or GBP. 
 
-\subsection{Filter Date/Time}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/fiat-currency-selection}\\[0.5cm] 
+  \caption{A screenshot of a radio button input field of the address search form, allowing one of three currencies to be selected}
+  \label{fig:select-fiat-currencies}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/fiat-currency-link-gbp}\\[0.5cm] 
+  \caption{A screenshot of link data information displayed in GBP}
+  \label{fig:select-fiat-currencies-gbp}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/fiat-currency-link-usd}\\[0.5cm] 
+  \caption{A screenshot of link data information displayed in USD}
+  \label{fig:select-fiat-currencies-usd}
+\end{figure}
 
-\subsection{Filter by value, several currencies}
+\subsubsection{Filter Date/Time}
+The date/time filter allows the user to specify that they only wish to see transactions/outputs that were mined in the time range specified. The option is disabled by default, but by selecting the toggle button, shown in figure \ref{fig:date-time-filter}, the user can adjust the start and end date/time for the filter. The filtering will remain for any further interactions the user makes when navigating the graph. 
 
-\subsection{Enable Multi-input clustering view}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/date-time-filter}\\[0.5cm] 
+  \caption{A screenshot of the date/time filter input enabled on the search form.}
+  \label{fig:date-time-filter}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/ui-screenshots/time-filter-result-all}\\[0.5cm] 
+  \caption{A screenshot of the search result for address \texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6} without a date filter.}
+  \label{fig:date-time-filter-without}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/ui-screenshots/time-filter-result-2019}\\[0.5cm] 
+  \caption{A screenshot of the search result for address \texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6} with a date filter applied.}
+  \label{fig:date-time-filter-with}
+\end{figure}
 
-\subsection{Configure how many nodes to display}
 
-\subsection{User Input Validation}
+\subsubsection{Add nodes with complementary}
 
-\subsection{Loading feedback states}
 
-\subsection{Limiting nodes}
+\subsubsection{Filter by value, several currencies}
+
+\subsubsection{Enable Multi-input clustering view}
+
+\subsubsection{Configure how many nodes to display}
+
+\subsubsection{User Input Validation}
+
+\subsubsection{Loading feedback states}
+
+\subsubsection{Limiting nodes}
 
