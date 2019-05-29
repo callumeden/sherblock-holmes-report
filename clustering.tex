@@ -4,6 +4,23 @@ The multi-input transaction clustering heuristic as introduced in section \ref{b
 
 \subsection{Java Algorithm using Spring Data}
 I implemented an algorithm which performed this clustering in Java; this used the Spring Data interface to the database to fetch all transactions in the database. For each transaction, it then fetches each input and the address each input is locked to. For those transactions with several inputs, each locked to a distinct address, each address is fetched and the set of addresses for the particular transaction are identified as a cluster and therefore under the control of the same user, using this heuristic. To represent this clustering in the database, every address in the cluster will be connected to every other address in the cluster, in a totally connected graph style, using a new relationship type \texttt{INPUT\_HERUISTIC\_LINKED\_ADDRESS}. 
+\\\\
+The result of running this clustering algorithm for a subset of the database (blocks 0-2000 only) can be seen in figure \ref{fig:neo4j-many-heuristic-1-clusters} and \ref{fig:neo4j-1-tx-heuristic-1-cluster}. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/many-clusters-heuristic-1}\\[0.5cm] 
+  \caption{Neo4J browser view of the several clusterings of addresses which all feed the same transaction.}
+  \label{fig:neo4j-many-heuristic-1-clusters}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/input-one-tx-heuristic-1}\\[0.5cm] 
+  \caption{Neo4J browser view one one of the clusterings of addresses with their neighbours expanded to show they all have outputs locked to them which feed the same transaction}
+  \label{fig:neo4j-1-tx-heuristic-1-cluster}
+\end{figure}
+
 
 \subsubsection{Challenges}
 

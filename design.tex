@@ -54,36 +54,10 @@ The import tool is designed to take advantage of the hardware at it's disposal; 
 \section{Public Address Entity Tagging}
 
 
-\section{Building a REST API to interface Neo4J}
-
-\subsection{Technology}
-Java, Spring Data, Spring Boot
-Built model to represent the data types rto be seralsied. A controller to provide the rest endpoints, a service to coordinate the fethcing of data. Repository to interface the actual database. 
-Had to avoid infiniite recursion of relationships - using JSon ignore proeprties. 
-
-\subsection{Implementation}
-
-\begin{itemize}
-    \item build model classes to represent the nodes, used @Relationship annotation to fetch nodes a 1 hop relationship away
-    \item had to use jsonignoreentities to represent infinite recursion fetching entities that include eachother through the relationship property 
-    \item build a rest controller which exposes an api to fetch each type of node given their id
-    
-\end{itemize}
-
 
 \section{Building the UI} 
 \begin{itemize}
-    \item why angular? some familiarity with it from previous projects. supports data binding which is important for this application. has tools like angular cli to quickly scaffold out project which reduces setup time. well supported in the front end community. 
-    \item uses angular CLI to scaffold out the project
-    \item uses D3 for drawing svg nodes and links in a force directed graph 
-    \item uses RXJS for asynchronous http calls and implementing publish/subscribe patterns for communicating data across several views (e.g search results are pushed to a data observable which is listened to by the investigation view which renders new nodes whenever new data arrives) 
     \item File uploading: Building an express.js server that provides an endpoint for saving files that are uploaded. 
-    
-    \item feature: introduce a custom node. Can have different types. One type = passport. upload an image. Create links from custom node to any other node, or any node to custom node. 
-    \item feature: show the value of transactions and outputs on links according to the historical exchange rate at the time of the transaction 
-    
-    \item stage 1: search by address. node rendering, relation expansions
-    \item stage 2: path finding between addresses
     
 \subsection{Challenges}
 Problems encountered: no visual feedback that a request is pending when expanding its neighbours. Updated to make nodes pulse. 
@@ -101,19 +75,8 @@ This heuristic is quite simple; every transaction on the blockchain must be iter
 \subsubsection{Results}
 I first experimented with my implementation on a subset of the blockchain running in a local instance of Neo4J on my personal machine. I was able to validate the correctness of the clustering using this heuristic without performing any potentially incorrect mutations to the real database holding the entire blockchain, which could be an expensive error to put correct. 
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width = 15cm]{./figures/many-clusters-heuristic-1}\\[0.5cm] 
-  \caption{This shows my the Neo4J browser view of the several clusterings of addresses which all feed the same transaction.}
-  \label{fig:neo4j-many-heuristic-1-clusters}
-\end{figure}
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width = 15cm]{./figures/input-one-tx-heuristic-1}\\[0.5cm] 
-  \caption{This shows my the Neo4J browser view one one of the clusterings of addresses with their neighbours expanded to show they all have outputs locked to them which feed the same transaction}
-  \label{fig:neo4j-1-tx-heuristic-1-cluster}
-\end{figure}
+
 
 
 \subsubsection{Efficiency}
@@ -133,14 +96,6 @@ For each transaction, if multiple outputs meet the pattern of a change address, 
 \end{itemize}
 
 
- 
-\subsection{Performance issues} 
-Searches for an address node using the tool takes an unacceptably long time (10 minutes 45 to find an Address node by its address and find its immediate neighbours). 
-
-\subsubsection{Creating indexes}
-Index's are useful for finding the starting point of a graph traversal. My tool requires exactly this functionality when we search for an address as the starting point of an investigation, before expanding out neighbours to traverse the blockchain. The initial search for the address is where the latency currently exists, therefore the first index I created was on the \texttt{address} property of the \texttt{ADDRESS} node. I was able to create this index by simply executing the command \texttt{CREATE INDEX ON :ADDRESS(address)} and using the command \texttt{CALL db.indexes} to track the progress of its population. 
-
-Once the index was created, the search for an address returned almost immediately. However, when trying to expand the relations of the address neighbours, I encountered the same performance issues. I therefore had to create index's for the node properties which are used to fetch nodes.  
 
 
 \subsubsection{Allocating more resources}

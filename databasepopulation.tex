@@ -66,8 +66,24 @@ $1/bin/neo4j-admin import
   --report-file "neo4j-import-debug-report.log" 
 \end{lstlisting}
 
-\subsection{Challenges}
-While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. This allowed the import tool to store information in virtual memory once physical memory had been exhausted. 
+\subsection{Challenges \& Solutions}
+\subsubsection{Memory Issues}
+While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. The total amount of memory available (including swap) increased to over 30GB. This allowed the import tool to progress using swap once memory had been exhausted, albeit with increased memory access latency.
 
-\subsection{Result}
+\subsubsection{Query Latency Issues} 
+Upon successful population of the database, I performed simple entity lookups to begin to evaluate the correctness and performance of the database. However, I discovered immediately that simple searches for an address node using the tool takes an unacceptably long time (10 minutes 45 to find an Address node by its address and find its immediate neighbours). I used indexing to solve this issue. 
+
+\subsubsection{Creating indexes}
+Index's are useful for finding the starting point of a graph traversal. My tool requires exactly this functionality when we search for an address as the starting point of an investigation, before expanding out neighbours to traverse the blockchain. The initial search for the address is where the latency currently exists, therefore the first index I created was on the \texttt{address} property of the \texttt{ADDRESS} node. I was able to create this index by simply executing the command \texttt{CREATE INDEX ON :ADDRESS(address)} and using the command \texttt{CALL db.indexes} to track the progress of its population. 
+\\\\
+Once the index was created, the search for an address returned almost immediately. However, when trying to expand the relations of the address neighbours (non-address nodes) I encountered the same performance issues. I therefore had to create index's for the each node type using the unique ID that each node will be fetched with. The complete set of indexes created are:
+\begin{itemize}
+    \item \texttt{:ADDRESS(address)}
+    \item \texttt{:BLOCK(hash)}
+    \item \texttt{:ENTITY(name)}
+    \item \texttt{:OUTPUT(outputId)}
+    \item \texttt{:TRANSACTION(transactionId)}
+\end{itemize}
+
+\subsection{Import Result}
 The import operation for the first 570,000 Bitcoin Blocks completed in 5 hours, 32 minutes and 54 seconds. The operation consumed 22.96GB of memory and created 1.964 billion nodes, 3.52 billion relationships and 3.03 billion properties. There were no errors or bad relationships reported. 
