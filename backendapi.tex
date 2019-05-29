@@ -1,0 +1,141 @@
+\section{Backend API}
+In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, I developed a backend API to support the features of the front end web application as described in section \ref{section-investigation-tool}. 
+
+\subsection{Technology Choices}
+The API was developed in Java using Spring Data as the predominant library used for communicating with Neo4J. 
+\\\\
+Spring Data provides powerful repository and object-mapping abstractions that can be used to define a data model and interact with the underlying data store through abstractions with relative ease. Spring Data has specific support for Neo4J, utilised by creating a repository that extends their \texttt{Neo4JRepository<>} interface. Spring Data repositories does much of the heavy lifting for you with query generation; queries will be derived from the repository method names that are defined. Spring Data also has support for many other underlying data repositories, such as MongoDB, Redit or Apache Cassandra. This would allow for the flexibility of changing the core underlying data store, or for new data sources from different types of data stores to be introduced.
+
+\subsubsection{Alternative Technologies}
+\todo{complete}
+
+\subsection{API Design}
+The API follows a REST design pattern; generally, ID's used to GET an entity are a path variable. Any further options such as data required for filtering exist as an optional query parameter.  
+
+\begin{lstlisting}[label={lst:address-api}, caption={Get an address using the unique full address. Several optional query parameters for filtering by time, price and enabling clustering and node limiting. \\[0.5cm] }, breaklines=true, basicstyle=\small]
+GET /bitcoin/address/{address | string}
+    ?startTime={time filter start since epoch | string}
+    &endTime={time filter end since epoch | string}
+    &startPrice={price filter start | double, as string}
+    &endPrice={price filter end | double, as string}
+    &priceUnit={currency units of price filter | string of 'btc', 'gbp', 'usd' or 'eur'}
+    &inputClustering={true/false | boolean}
+    &nodeLimit={node limit number | integer}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Get an entity using the unique name of the entity . All query parameters are optional for filtering.}, breaklines=true, basicstyle=\small]
+GET /bitcoin/entity/{entity name | string}
+    ?startTime={time filter start since epoch | string}
+    &endTime={time filter end since epoch | string}
+    &startPrice={price filter start | double, as string}
+    &endPrice={price filter end | double, as string}
+    &priceUnit={currency units of price filter | string of 'btc', 'gbp', 'usd' or 'eur'}
+    &nodeLimit={node limit number | integer}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Get an output with a unique output ID. All query parameters are optional for filtering.}, breaklines=true, basicstyle=\small]
+GET /bitcoin/output/{output id | string}
+    ?startTime={time filter start since epoch | string}
+    &endTime={time filter end since epoch | string}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Get a transaction with a unique transaction ID (txid). All query parameters are optional for filtering.}, breaklines=true, basicstyle=\small]
+GET /bitcoin/transaction/{transaction id | string}
+    ?startTime={time filter start since epoch | string}
+    &endTime={time filter end since epoch | string}
+    &startPrice={price filter start | double, as string}
+    &endPrice={price filter end | double, as string}
+    &priceUnit={currency units of price filter | string of 'btc', 'gbp', 'usd' or 'eur'}
+    &nodeLimit={node limit number | integer}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Get a block with a unique block hash}, breaklines=true, basicstyle=\small]
+GET /bitcoin/block/{block hash}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Find a path between two addresses using their full address strings}, breaklines=true, basicstyle=\small]
+GET /bitcoin/shortestPath/{start address}/{end address}
+\end{lstlisting}
+
+\subsubsection{Responses}
+A typical response will contain all information for the requested entity, and its immediate neighbours. For example, the request \\\texttt{GET /bitcoin/address/1261hwCRfSEA8qLkVhLYS2a3CFzegiUxGU} will have the response shown in listing \ref{lst:output-response}. The start and end nodes are fully defined, and each intermediate node on the path (each potentially of a different type) are included in the \texttt{intermediateNodes} array, with the links that connect each of the nodes included in the \texttt{rels} array. 
+
+\begin{lstlisting}[label={lst:output-response}, caption={GET Output Example Response}, breaklines=true]
+{
+    "outputId": "fbec1c21ca91d4e5baf55f305b05d294755b4fd069d149344b2104b708e42873-0",
+    "value": 50,
+    "producedByTransaction": {
+        "transaction": {...}
+        "eurValue": 0,
+        "usdValue": 0,
+        "gbpValue": 0,
+        "timestamp": 1232709019
+    },
+    "inputsTransaction": {
+        "transaction": {...},
+        "eurValue": 0,
+        "usdValue": 0,
+        "gbpValue": 0,
+        "timestamp": 1233004161
+    },
+    "lockedToAddress": {
+        "address": {
+            "address": "1BENJudbbZ8dfTwFtCLuJNWMTtBLE2bZa",
+            "entity": null,
+            "hasLinkedAddresses": true
+        }
+    }
+}
+\end{lstlisting}
+
+The response for the path finder method takes on a different format. For example, executing the path finding query on addresses \textit{1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE} and \texttt{17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui} returns the response showwn in listing \ref{lst:path-find-response}.
+
+\begin{lstlisting}[label={lst:path-find-response}, caption={Response to a path find query}, breaklines=true]
+[
+    {
+        "startNode": {
+            "address": "1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE",
+            "outputs": [
+                {...}
+            ],
+            "entity": null,
+            "inputHeuristicLinkedAddresses": null,
+            "hasLinkedAddresses": false
+        },
+        "intermediateNodes": [
+            {...},
+            {...},
+            {...}
+        ],
+        "rels": [
+            {...},
+            {...},
+            {...}
+        ],
+        "endNode": {
+            "address": "17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui",
+            "outputs": [
+                {...}
+            ],
+            "entity": null,
+            "inputHeuristicLinkedAddresses": null,
+            "hasLinkedAddresses": false
+        }
+    }
+]
+\end{lstlisting}
+
+\subsection{System Design} 
+The API is created by the BitcoinController class. This is achieved using the Spring Data \textt{R
+\begioryRestController} annotn{figure}[h!] mapping under which the API exists under is created using the \texttt{@RequestMapping} annotation. Requests are handled by each of the methods shown on the BitcoinController class ion figure \ref{fig:backend-uml}. A request will be sent to the service which coordinates the data to be returned using a number of the repositories. There exists one repository for each type of entites. 
+\\\\
+Entities are defined as part of the data model using the Spring Data \texttt{NodeEntity} annotation; Relationships from the database can be represented using the \texttt{Relationship} annotation. An example class used as a data model ca be seen in listing...
+
+  \centeriation and theng
+  \includegraphics[width = 15cm]{./figures/backend-eposituml}\\[0.5cm] 
+  \caption{Backend UML}
+  \label{fig:backend-uml}
+\end{figure}
+
+
+

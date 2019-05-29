@@ -1,4 +1,4 @@
-\section{Web UI Investigation Tool}
+\section{Web UI Investigation Tool}\label{section-investigation-tool}
 
 The web application is designed as a single page web-application, such that changes in the URL represent the application rendering a different view dynamically, rather than making a request for a new web-page. 
 
@@ -169,32 +169,114 @@ The date/time filter allows the user to specify that they only wish to see trans
   \caption{A screenshot of the date/time filter input enabled on the search form.}
   \label{fig:date-time-filter}
 \end{figure}
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width = 10cm]{./figures/ui-screenshots/time-filter-result-all}\\[0.5cm] 
-  \caption{A screenshot of the search result for address \texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6} without a date filter.}
-  \label{fig:date-time-filter-without}
-\end{figure}
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width = 10cm]{./figures/ui-screenshots/time-filter-result-2019}\\[0.5cm] 
-  \caption{A screenshot of the search result for address \texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6} with a date filter applied.}
-  \label{fig:date-time-filter-with}
-\end{figure}
-
-
-\subsubsection{Add nodes with complementary}
-
 
 \subsubsection{Filter by value, several currencies}
+Similar to date filtering, transactions and outputs in the search results can also be filtered by their value. Their value can be filtered either in bitcoin (BTC) or any of the supported fiat currencies (GBP, USD, EUR). Once enabled, only transactions/outputs that have a value that lies in the filter range will be displayed. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/price-filter-form}\\[0.5cm] 
+  \caption{A screenshot of the price filter input field.}
+  \label{fig:date-time-filter}
+\end{figure}
+
+\subsubsection{Limiting nodes}\label{feature-limit-nodes}
+Some nodes that are rendered on the graph may have a huge number of neighbours; such as a transaction with many inputs or an entity that has many addresses. If the UI were to attempt to render thousands of nodes using D3, the performance would seriously deteriorate and the web application may become unresponsive. Therefore, in order to prevent this from happening as the default behaviour, the number of nodes that will actually be rendered will be limited, configurable using a field on the search form as shown in figure \ref{fig:limit-node-filter}. The user can disable node limiting completely, and is shown a warning when they do so (see  figure \ref{fig:limit-node-filter-warning}. They can also drag a slider to easily configure the number of nodes to render. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/limit-nodes-filter}\\[0.5cm] 
+  \caption{A screenshot of the node limiting input field.}
+  \label{fig:limit-node-filter}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/limit-nodes-filter-warning}\\[0.5cm] 
+  \caption{A screenshot of the node limiting input field when disabled and showing a warning.}
+  \label{fig:limit-node-filter-warning}
+\end{figure}
 
 \subsubsection{Enable Multi-input clustering view}
+The final option available on the search form is one labelled 'Input Clustering' which is a simple toggle, disabled by default, that the user can turn on when performing a search. Enabling this option will now display 'supernodes' rather than address nodes whenever addresses can be clustered; either through using the same-input heuristic as described in section \ref{section-clustering} or using entity tagging data as described in section \ref{section-entity-tagging}.
+\\\\
+For example, an address that belongs to the wallet 'BitKonan.com' is \\\texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6}. When searching for this address, with the clustering option enabled, the search result will be shown with a large supernode for the wallet, rather than the individual address, as shown in figure \ref{fig:entity-tagging-supernode}. The output nodes connected to the supernode will be all of the outputs for each of the addresses belonging to the supernode. The addresses belonging to the supernode can be viewed by hovering over the node, where the node data component will display them as a list, as shown in figure \ref{fig:entity-tagging-supernode-address-list}.
+\\\\
+For an address that does not belong to a known entity, but can be linked with other addresses using the multi-input clustering heuristic from section \ref{section-clustering}, then a similar super node will appear, with all of the outputs associated with each address in the cluster rendered as neighbours. 
+\\\\
+Similar to limiting the number of outputs and transactions to render, the number of clustered addresses and linked outputs displayed is also limited when rendering supernodes. This prevents clustering 'on-demand' as described in section \ref{section-clustering} from taking an unreasonable amount of time, while also providing the option to the user to disable the limiting from the search form and obtaining a complete response. 
 
-\subsubsection{Configure how many nodes to display}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/entity-tagging-supernode}\\[0.5cm] 
+  \caption{A screenshot of a supernode being displayed for address \texttt{1GEp9Fui9XmyVhszPzFazdW3WHyt1adLR6}.}
+  \label{fig:entity-tagging-supernode}
+\end{figure}
 
-\subsubsection{User Input Validation}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/ui-screenshots/supernode-address-list}\\[0.5cm] 
+  \caption{A screenshot of the node data component showing a list of addresses included in a supernode.}
+  \label{fig:entity-tagging-supernode-address-list}
+\end{figure}
 
-\subsubsection{Loading feedback states}
+\subsubsection{User Input Validation \& Feedback}
+User input validation exists across all forms in the web-app. This includes forms for searching by address, path finding, adding a new node and creating a link. Examples of input validation in the application includes highlighting fields in red and displaying a useful message, such as:
+\begin{itemize}
+    \item Path Finder Form : No paths found between addresses (if a path does not exist)
+    \item Address Search Form : 404, Entity not found (if address does not exist)
+\end{itemize}
 
-\subsubsection{Limiting nodes}
+Additionally, to convey loading states, search forms display a animated loading bar while waiting for a request to return from the backend API. This becomes particularly important for requests that have many linked addresses through clustering and responses can take a number of seconds. For requests made by double clicking a node, a pulsing animation of the node signals that a request is pending.
+
+\subsubsection{Add custom nodes}
+It is possible to add custom nodes to the graph. The intention of this feature is the nodes will contain information to complement an active investigation; usually this data will have an off-chain source. There exists various custom node types, based on the typical types of off-chain data that may exist in an investigation. One of these types is photographic ID, which provides the option to upload an image to be displayed in a custom node. The form for adding a new custom node of photographic id type can be seen in figure \ref{fig:add-passport-form}. The user can additionally choose to define an arbitrary number of custom fields in a key, value format. 
+
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/ui-screenshots/add-passport-form-success}\\[0.5cm] 
+  \caption{A screenshot of the form to add a custom node for passport data.}
+  \label{fig:add-passport-form}
+\end{figure}
+
+
+\subsubsection{Link custom nodes to other nodes}
+Once a custom node exists, it can be associated with any other node shown on the graph. The user can achieve this by hovering over the custom node, so that the node data view displays, as shown in figure \ref{fig:custom-node-data}. This will open a view to introduce the new link, where the user can type the ID of the node they wish to create a link with. To help simplify this process, the target node will have a filtered autocomplete for all of the ID's that currently exist on the graph. The user can also change the direction of the link using the middle arrow button. The link name can then be any custom string defined by the user, and will show on the link as shown in figure \ref{fig:custom-link-graph}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 10cm]{./figures/ui-screenshots/custom-node-data}\\[0.5cm] 
+  \caption{A screenshot of the custom node data component.}
+  \label{fig:custom-node-data}
+\end{figure}
+
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/add-link-form}\\[0.5cm] 
+  \caption{A screenshot of the form to add a new link from a custom node.}
+  \label{fig:add-link-form}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/custom-link-graph}\\[0.5cm] 
+  \caption{A screenshot of the graph after a new link \texttt{VERIFIED_IDENTITY} has been introduced between the custom node and an address node.}
+  \label{fig:custom-link-graph}
+\end{figure}
+
+\subsubsection{Path Finding}
+The path finder feature allows the user to search for all paths between any two valid addresses. The path can include paths that contain relationship types \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED_TO}. This helps identify how two addresses may be linked through the transfer of funds. The result is shown on the graph by only rendering the two address nodes and the intermediate nodes on the path, with the path highlighted in red. A user can expand out neighbouring nodes as usual by double clicking on nodes. An example search result can be seen in figure \ref{fig:path-search-result}. The two addresses shown are clearly connected by the funds they input into the same transaction. 
+
+\todo{better example}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/path-find-result}\\[0.5cm] 
+  \caption{A screenshot of the result of a path finder search between addresses \texttt{17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui} and \texttt{1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE}.}
+  \label{fig:path-search-result}
+\end{figure}
+
+
+
 
