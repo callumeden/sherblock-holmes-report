@@ -1,0 +1,40 @@
+\section{Industry \& Metropolitan Police Investigators} 
+In order to gain feedback from the target end-users of this tool I arranged a meeting with Mat Stanley, a Detective Sergeant of a London Metropolitan Police crypto-currency investigation unit and, in order to also gain a private sector industry perspective, Iggy Azad who is a senior investigator at Coinbase. Iggy Azad was previously also with the Metropolitan Police before taking on a private sector role at Coinbase. 
+\\\\
+I arranged the meeting with the goal of obtaining critical feedback on the investigation tool based on their domain knowledge of carrying out investigations and their experience with other similar proprietary tools which have been built to achieve similar goals. I also wanted to better understand the challenges that law enforcement face when investigating crypto-currency based crime and potentially what the current solutions are not adequately providing the investigators with. 
+
+\subsection{Successes and Weaknesses}
+Through my conversation with Mat and Iggy, and through demonstrating the current functionality of the tool, I obtained feedback such that I was able to identify areas of success and areas of weakness in the current implementation. These areas are summarised below:
+
+\begin{itemize}
+    \item \textbf{Weakness}: The different types of nodes aren't very clear (\textit{Implicit: I had to explain what the different types of nodes represent}). \textbf{Actionable}: Introduce UI feature to make the types of nodes more apparent. 
+    \item \textbf{Success}: The date and price filtering functionality is often very valuable to investigators. This is often particularly useful when tracing funds through a mixing service [see \ref{background-mixing-service}]. 
+    \item \textbf{Success}: Displaying the historical exchange rate is also very important to investigators; this enables them to better understand the true value of the flow of funds, which may be otherwise difficult without historical exchange rates due to the volatility in the value of Bitcoin. 
+    \item \textbf{Success \& Weakness}: The Path Finding feature is very useful in investigations, yet not provided by some of the solutions they currently use. However, It would be useful to be able to type the name of a wallet rather than an address and the path finding happen for any address belonging to the wallet. 
+    \item \textbf{Success}: Clustering using the wallet information obtained in section \ref{section-entity-tagging} will prove extremely useful; this data is also provided by their ChainAnalysis software. 
+    \item \textbf{Success}: The ability to toggle on/off clustering heuristics is very desirable and not provided by several other solutions. 
+    \item \textbf{Success \& Weakness}: Ability to add custom information (through the custom node feature) is very useful; however, adding information such as Photographic ID is not usually required at this stage of the investigation. The tool will be used in the run up to issuing a warrant to obtain identification from exchanges (who should have it due to KYC [see \ref{background-kyc}). Additionally, adding this additional data would be more intuitive to exist as data associated with a node, rather than existing as a separate node itself. 
+    \item \textbf{Weakness}: Secure data storage not addressed by current deployment : If storing investigation specific data, a secure solution is needed such that only the user could access it. 
+\end{itemize}
+
+\subsection{Current Solutions}
+Mat spoke about the current solutions employed at the Met Police in order to help investigate crimes; these solutions include proprietary software, such as ChainAnalysis, and several others as described in section \ref{background-existing-tools}. 
+\\\\
+Questioned why so many tools were used, Mat explained that each tool provides something different, such as different clustering heuristics or their data has originated from a different source. Often data obtained from each tool is distinct, but complementary to the overall investigation.  
+
+\subsection{Desirable features}
+There were a number of features Mat and Iggy explained are very useful to their investigations and are often provided by the current solutions that they use, but were not provided by my tool. These are:
+\begin{itemize}
+    \item Ability to save a graph state as an investigation and come back to it later
+    \item Ability to export the data from an investigation, often in CSV format to provide evidence for cases - needs to be digestible by a jury.
+    \item Ability to set up notifications/watches for state changes on entities - e.g an address/wallet receives or spends funds 
+    \item Automatically detect and alert when an address re-surfaces in a new investigation that was seen in a previous investigation 
+    \item Ability to collapse nodes/remove nodes from graph 
+    
+\end{itemize}
+
+\subsection{Challenges Facing Law Enforcement}
+The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it rather than Bitcoin. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
+
+
+\subsection{Discussing their existing solutions}

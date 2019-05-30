@@ -262,12 +262,12 @@ Once a custom node exists, it can be associated with any other node shown on the
 \begin{figure}[h!]
   \centering
   \includegraphics[width = 15cm]{./figures/ui-screenshots/custom-link-graph}\\[0.5cm] 
-  \caption{A screenshot of the graph after a new link \texttt{VERIFIED_IDENTITY} has been introduced between the custom node and an address node.}
+  \caption{A screenshot of the graph after a new link \texttt{VERIFIED\_IDENTITY} has been introduced between the custom node and an address node.}
   \label{fig:custom-link-graph}
 \end{figure}
 
 \subsubsection{Path Finding}
-The path finder feature allows the user to search for all paths between any two valid addresses. The path can include paths that contain relationship types \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED_TO}. This helps identify how two addresses may be linked through the transfer of funds. The result is shown on the graph by only rendering the two address nodes and the intermediate nodes on the path, with the path highlighted in red. A user can expand out neighbouring nodes as usual by double clicking on nodes. An example search result can be seen in figure \ref{fig:path-search-result}. The two addresses shown are clearly connected by the funds they input into the same transaction. 
+The path finder feature allows the user to search for all paths between any two valid addresses. The path can include paths that contain relationship types \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED\_TO}. This helps identify how two addresses may be linked through the transfer of funds. The result is shown on the graph by only rendering the two address nodes and the intermediate nodes on the path, with the path highlighted in red. A user can expand out neighbouring nodes as usual by double clicking on nodes. An example search result can be seen in figure \ref{fig:path-search-result}. The two addresses shown are clearly connected by the funds they input into the same transaction. 
 
 \todo{better example}
 \begin{figure}[h!]
@@ -279,4 +279,11 @@ The path finder feature allows the user to search for all paths between any two 
 
 
 
-
+\subsubsection{Persisting Data}
+Instances where data needs to be persisted, such as when a user is uploading an image when creating a custom identification node, are handled by a simple web server implemented using expressjs. 
+\\\\
+I built a simple API to serve the purpose of uploading images.
+\begin{lstlisting}
+POST /api/upload/{file}
+\end{lstlisting}
+This simply stores the file with its file name where the web server is located; allowing the files uploaded to be served as assets in the UI. 

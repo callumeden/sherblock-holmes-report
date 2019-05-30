@@ -104,7 +104,7 @@ Since all transactions to occur in Bitcoin are available to view by the public, 
 
 There exist studies which show it is possible to de-anonymise Bitcoin transactions based on data that is publicly available \cite{RefWorks:doc:5c3db7d6e4b0fa2b1fe68b48}. Therefore, there exist services called 'mixers' which aim to obfuscate transaction origins and make the de-anonymisation of Bitcoin transactions more difficult. 
 
-\subsection{Mixing Services}
+\subsection{Mixing Services}\label{background-mixing-service}
 A mixing service, or 'mixer', works in the following way: A user wishing to user a mixing service will first create a new address and send bitcoin to an address of the service, asking the service to send the funds back to their new address. Other users also wishing to achieve the same goal will take the same steps and send bitcoin to the service. The service now holds bitcoin for multiple users. The service can now use any of the addresses in which it holds bitcoin to send money back to the users of the service. This results in the appearance of a disconnect between the user's old address (the one which held the bitcoin initially) and the new address which now holds their bitcoin \cite{RefWorks:doc:5c3dace5e4b0613d0cda512b}. Clearly, this helps disguise the origins of bitcoin, and can be used as a tool in the process of money laundering. The operators of these services profit by charging a fee in exchange for 'mixing' their bitcoin. 
 
 \subsection{Attacks on transactions anonymisers}
@@ -205,7 +205,7 @@ However, there have been growing concerns that these ATM's are being used in the
 \end{figure}
 
 
-\section{Existing Forensic Tools} 
+\section{Existing Forensic Tools}\label{background-existing-tools}
 
 The idea of visualising Blockchain data in a graphical, interactive fashion and providing tools for forensics has not been coined by this project. There exist tools, both freely available and proprietary, that aim to deliver similar capabilities. 
 
@@ -268,3 +268,37 @@ A company Blockchain Inspector who are 'using Artificial Intelligence to fight f
 
 \subsubsection{Analysis of previous work}
 TokenAnalyst's approach seems to best describe the ideal situation for this project; a efficient bulk import into Neo4J and a mechanism for keeping the database up to date. There exists no open source implementation for their work, only a high level description of what they did in their blog post. Max's work, however, is available to me and his work in fetching data using RPC could prove useful to my project. The Bitcoin to Neo4J tool would not be a feasible approach and can be immediately ruled out due to the time requirement of several weeks for the tool to complete; this would not be acceptable for the timescale of this project. As for Blockchain Inspector's open-source solution, upon inspection of the code, it seems the bulk import process relies on an existing database containing the entire Bitcoin Blockchain, and therefore seems to be more of a tool to migrate from a traditional database to a relational one (Neo4J). It is therefore not very applicable to my work, creating an intermediate database storing the Bitcoin Blockchain for the bulk import would be unnecessary and expensive.
+
+\section{Know Your Customer}\label{background-kyc}
+Know Your Customer (KYC) is a keystone in the fight against money laundering. It is the process of a business carrying out customer due-diligence measures and verify the identity of its clients. This ensures the business is deadline with bonafide customers and organisations and helps identify suspicious behaviours or practices. These measure also help satisfy anti money laundering requirements (AML). 
+
+\section{Privacy Enhanced Crypto-currencies}
+\subsection{ZCash}\label{background-zcash}
+ZCash has shieldedd' transactions in which a zero knowledge proof is used to verify the sender, recipient and amount of a transaction, without exposing the information on the public blockchain. Shielded transactions are encrypted on the blockchain, yet still verified by the network using zk-SNAKRK proofs. 
+
+\subsection{MimbleWimble (Protocol)}\label{background-mimblewimble}
+MimbleWimble is a blockchain protocol which addresses gaps in many blockchain protocols by using strong cryptographic primitives to provide good scalability, privacy and fungibility. Two current implementations of the MimbleWimble Protocol are Grin and Beam. Grin is developed in Rust and is a community backed project. 
+
+\subsection{Dash}
+Dash offers a privateSend feature where users can mix the funds they are sending with others on the network; making it more difficult for a third party to identify where funds came from. There exist master nodes on the network that conduct coin mixing. 
+
+\subsection{Monero}\label{background-monero}
+Monero employs different privacy technologies to other crypto-currencies, such as Bitcoin and Ethereum which have transparent blockchains. This privacy technologies, such as ring signatures, ring confidential transactions and stealth addresses enable a verifiable blockchain but without exposing details such as the sender, recipient or the amount in a transaction. This privacy features all exist by design for all transactions; such that all transactions made with Monero are made private through these features, rather than the selective privacy provided by some other privacy enhanced crypto-currencies such as Zcash. 
+
+\subsubsection{Kovri}
+Kovri is used, a private overlay network using routing and encryption allowing users to hide their geographical location and IP address. This avoids the need to use Tor which has semi-trusted authorities, who could have overreaching influence of network consensus (and therefore in the determination of who can relay traffic). Kovri makes passive surveillance impossible. 
+
+\subsubsection{Stealth Addresses}
+Used to obscure the recipient of a transaction. Stealth addresses are one-time (ephemeral) public keys. Observers cannot infer the recipient from the stealth address, however the sender can verify that the payment was sent by then. A Monero wallet has a public view key and a public send key. When Alice sends Monero to Bob, Alice will use Bobs public view and send key, in addition to some random data in order to generate the one-time ephemeral key (stealth address). The entire blockchain can see the stealth address. Bob, with his wallet's private view key, can identify the output of the transaction sent to him on the blockchain. Bob will be able to generate a one-time private key that corresponds to the one-time public key in order to spends the funds. 
+
+\subsubsection{Ring Signatures}
+Used to obsecure the sender.
+A group of possible signers of are fused together to produce a possible signature. The actual signer is a one time spend key that corresponds with an output being spent from the senders wallet; the non-signers in the ring are past transaction outputs pulled from the blockchain being used as decoys. These outputs combined make up the inputs of a transaction in which it is indistinguishable between the actual signer and the decoy signers. Key imaged are used to detect double-spends. 
+
+\subsubsection{Ring CT signatures}
+Obsecures the amount of Monero sent in a transaction. 
+Before Ring CT's, Monero would require transaction amounts to be split up into smaller denominations and split amongst ring signatures to ensure there would be enough ring signers (since all signers of a ring must have outputs of the same value). This means an observer can see the amounts sent in transactions. Ring CT transactions obscure the value of outputs, but now the sender must commit to the value of an output (Pedersen commitment scheme) but without publicly disclosing the amount being sent. 
+
+
+
+
