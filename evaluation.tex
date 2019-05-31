@@ -13,7 +13,7 @@ Through my conversation with Mat and Iggy, and through demonstrating the current
     \item \textbf{Success \& Weakness}: The Path Finding feature is very useful in investigations, yet not provided by some of the solutions they currently use. However, It would be useful to be able to type the name of a wallet rather than an address and the path finding happen for any address belonging to the wallet. 
     \item \textbf{Success}: Clustering using the wallet information obtained in section \ref{section-entity-tagging} will prove extremely useful; this data is also provided by their ChainAnalysis software. 
     \item \textbf{Success}: The ability to toggle on/off clustering heuristics is very desirable and not provided by several other solutions. 
-    \item \textbf{Success \& Weakness}: Ability to add custom information (through the custom node feature) is very useful; however, adding information such as Photographic ID is not usually required at this stage of the investigation. The tool will be used in the run up to issuing a warrant to obtain identification from exchanges (who should have it due to KYC [see \ref{background-kyc}). Additionally, adding this additional data would be more intuitive to exist as data associated with a node, rather than existing as a separate node itself. 
+    \item \textbf{Success \& Weakness}: Ability to add custom information (through the custom node feature) is very useful; however, adding information such as Photographic ID is not usually required at this stage of the investigation. The tool will be used in the run up to issuing a warrant to obtain identification from exchanges (who should have it due to KYC [see Know Your Customer \ref{background-kyc}). Additionally, adding this additional data would be more intuitive to exist as data associated with a node, rather than existing as a separate node itself. 
     \item \textbf{Weakness}: Secure data storage not addressed by current deployment : If storing investigation specific data, a secure solution is needed such that only the user could access it. 
 \end{itemize}
 
@@ -25,16 +25,29 @@ Questioned why so many tools were used, Mat explained that each tool provides so
 \subsection{Desirable features}
 There were a number of features Mat and Iggy explained are very useful to their investigations and are often provided by the current solutions that they use, but were not provided by my tool. These are:
 \begin{itemize}
+    \item Support for several crypto-currencies. Namely: Ethereum, Litecoin, Bitcoin, Bitcoin Cash, Dash
     \item Ability to save a graph state as an investigation and come back to it later
     \item Ability to export the data from an investigation, often in CSV format to provide evidence for cases - needs to be digestible by a jury.
     \item Ability to set up notifications/watches for state changes on entities - e.g an address/wallet receives or spends funds 
     \item Automatically detect and alert when an address re-surfaces in a new investigation that was seen in a previous investigation 
     \item Ability to collapse nodes/remove nodes from graph 
-    
+    \item Offering a compliance/risk score with clustering information - is the data verified? Does the data come from multiple independent sources? 
+    \item Enhance clustering of addresses by considering different types of addresses [see address types \ref{background-address-types}]
+    \item Incorporate address tag information - they often have some significance, e.g tags may relate to a gamer tag which can be searched for in other datasets. Also vanity addresses often have significance, may include parts of their name which can be used to help link addresses [see vanity addresses \ref{background-vanity-addresses}]
 \end{itemize}
 
-\subsection{Challenges Facing Law Enforcement}
-The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it rather than Bitcoin. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
 
+\subsection{Data Sources}
+In addition to the additional features, Mat and Iggy also helped me additonal types of resources that can be used as datasources to feed functionality for the tool. These data sources are:
+\begin{itemize}
+    \item oxt.me : Useful for looking at multi-signature transactions
+    \item bitcoinswhoswho.com : Check addresses against reported scams or see if the address has associated tags
+    \item Shapeshifter : Given a 
+XID, tells you where the coin went (which currency?). Also has a free API! Could integrate this information into the tool to help track funds across crypto-currencies. \end{itemize}
+
+
+
+\subsection{ChalTlenges Facing Law Enforcement}
+The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it rather than Bitcoin. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
 
 \subsection{Discussing their existing solutions}
