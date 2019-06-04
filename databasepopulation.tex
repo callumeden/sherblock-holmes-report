@@ -1,4 +1,4 @@
-\section{Database Population}
+\section{Database Population}\label{section-blockchain-import}
 The next stage of the project following downloading the historical Bitcoin Blockchain data and storing it in CSV files is to use this data to populate a Neo4J graph database. 
 
 \subsection{Why Neo4J?}
@@ -41,8 +41,6 @@ I created several types of relationships to exist between nodes in Neo4J. The re
   \caption{The new \texttt{HAS\_ENTITY} relationship visualised between a new Entity node and a bitcoin address.}
   \label{fig:neo4j-has-entity}
 \end{figure}
-
-
 
 \subsection{Invoking the import job}
 I created a script to wrap the execution of the import job, providing the benefits of version control and reproducibility. This script first uses globbing to build the list of input files for each type of node and relationship. It then invokes the import command as shown below. Some additional arguments were \texttt{--max-memory} to override the default 90\% memory usage to use slightly more. The argument \texttt{--ignore-missing-nodes} was to prevent a long job failing simply due to a single relationship referring to a non existing node, and to rely on these bad relationships being reported to the file as defined by the \texttt{--report-file} option for manual investigation. 

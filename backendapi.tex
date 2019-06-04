@@ -1,4 +1,4 @@
-\section{Backend API}
+\section{Backend API}\label{section-backend-api}
 In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, I developed a backend API to support the features of the front end web application as described in section \ref{section-investigation-tool}. 
 
 \subsection{Technology Choices}
@@ -196,4 +196,7 @@ public interface AddressRepository extends Neo4jRepository<Address, Long> {
 
 \subsubsection{Implementing Path Finding}
 The implementation of the path finding functionality can be seen in listing \ref{lst:address-repository}. Neo4J provides the method \texttt{shortestPath} that can be used to find a path between two nodes; I restricted the type of paths to be of type \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED\_TO} in order for the path to represent the flow of funds, rather than paths existing simply due to the fact all addresses are connected via outputs that are spent in transactions that are mined in blocks which are chained from each-other.
+
+
+
 

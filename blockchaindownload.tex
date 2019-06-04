@@ -1,7 +1,7 @@
-\section{Blockchain Download}
+\section{Blockchain Download}\label{section-blockchain-download}
 This section will cover the objective of downloading historical Bitcoin Blockchain data. The goal of this objective is to have the historical Bitcoin Blockchain in a format that can be used to populate a database. I performed the historical download to block height 570,000 - mined on the 3rd April 2019. 
 
-\subsection{Hardware} 
+\subsection{Hardware}\label{satoshi-specs}
 I had access to a VM on a machine provided by the Department of Computing at Imperial.  My VM has the following resource allocated to it:
 \begin{itemize}
     \item \textbf{Processor}: 16 of 24 cores, AMD EPYC 7401
@@ -43,3 +43,6 @@ Although the above parallelisation improves the efficiency of the overall downlo
 
 \subsubsection{Duplicate Addresses}
 While generating the CSV files, we fetch the outputs of a transaction an the addresses each output is locked to. Since while generating the CSV, there was no way of efficiently checking if we had already seen an address before, we simply had to write every address we see to the CSV file. When running the Neo4J bulk import job, we encounter an error as we attempt to define an address node twice. A solution considered was to use a flag \texttt{--ignore-duplicate-nodes} that can be used when invoking the bulk import tool. This would simply ignore any address nodes that have already been defined, solving our problem. However, as TokenAnalyst found in their work \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, the \texttt{--ignore-duplicate-nodes} flag massively slows down the import process, as Neo4J needs to check every single node to see if the one its adding already exists. Their solution, which I adopted, was to use GNU's \texttt{sort - u} command, which allows us to generate a new address CSV file with only the unique addresses. TokenAnalyst found this process to take around 30 minutes \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, and is therefore a good investment in speeding up the entire import process. 
+
+\subsubsection{Result}
+All Bitcoin Blockchain data was able to be downloaded, parsed and written as CSV files across a 12 hour period up to block 570,000. Due to the process of human intervention in my approach, in order to mitigate the effects of a job failing as described above, the download was not continuous and there were idle times between jobs finishing and the next being started. Additionally, manual intervention was required post-download in order to augment the Bitcoin data with price information and entity relationships, as described in section \ref{section-price-data} and section \ref{section-entity-tagging} respectively. 

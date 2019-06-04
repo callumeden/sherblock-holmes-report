@@ -37,7 +37,6 @@
 \usepackage{csquotes}
 \usepackage[section, subsection]{placeins}
 \usepackage[pdftex,pagebackref,hypertexnames=false,colorlinks]{hyperref} % provide links in pdf
-\usepackage[firstpage]{draftwatermark}
 
 \hypersetup{pdftitle={},
   pdfsubject={}, 
@@ -52,6 +51,15 @@
     urlcolor=black}
 
 \usepackage[all]{hypcap}
+
+\def\bitcoinA{%
+  \leavevmode
+  \vtop{\offinterlineskip %\bfseries
+    \setbox0=\hbox{B}%
+    \setbox2=\hbox to\wd0{\hfil\hskip-.03em
+    \vrule height .3ex width .15ex\hskip .08em
+    \vrule height .3ex width .15ex\hfil}
+    \vbox{\copy2\box0}\box2}}
 
 \usepackage[final]{listings}
 \lstset{aboveskip=20pt,belowskip=20pt}
@@ -154,3 +162,4 @@
     \vskip 30\p@
   }}	
 \allowdisplaybreaks
+\raggedbottom
