@@ -113,7 +113,7 @@ I performed the same profiling for each other type of entity that is retrieved a
 \\\\
 The query profiling results show simple lookups all lay in the range of 9-30ms, which feels near instantaneous as a user waiting for a search result. There are slight differences notable between response times for address, transaction and output lookups compared to block and entity simply due to the differences in the size of the indexes that need to be searched; obviously the output index will be substantially larger than the block index as there will be substantially more outputs than blocks. 
 
-\subsubsection{Profiling Path Finding}
+\subsubsection{Profiling Path Finding}\label{evaluation:path-finding-profile}
 The worst case performance for path finding is when an address does not exist between two nodes. 
 \todo{complete}
 
@@ -135,7 +135,7 @@ bc1qzzygmd9klrqce6q\-j0pfx2vzk763z8stq457zv5 & bc1qzzzagxs2f5dtk2u\-dx7q4zqc89n2
 \end{tabular}
 \end{center}
 
-\subsection{Performance Under Load}
+\subsection{Performance Under Load}\label{evaluation:performance-under-load}
 Below I evaluate the performance of requests sent to the back-end API created in \ref{section-backend-api}. Measuring single requests individually, with the database under no other load due to other user requests is not a realistic reflection of performance in a production environment. Therefore, I use Locust.io to simulate many users simultaneously using the tool and invoking requests to the API, and using Locust to measure statistics regarding latency and success/fail responses. 
 \\\\
 Using Locust, I define a set of tasks that a typical user may perform, with a time range in which a user may perform them in. I then run experiments which launch a 'swarm' of these users performing these requests concurrently in order to observe how the system performs under stress; particularly inspecting failure rates and response timess.
@@ -265,6 +265,8 @@ Observations:
 From these experiments, I learnt that under significant load, the path finding queries are capable of causing a denial of service to other users of the system. Additionally, with requests that retrieve entities with an unbounded number of neighbours, request response times become less predictable. However, without path finding requests and with the default node limiting option enabled, the system will be able to handle considerable loads (up to 100 users) comfortably. 
 \todo{import time too}
 
+\subsection{Evaluating input clustering}
+\todo{complete nthis}
 \subsection{Blockchain Import}
 As described in section \ref{section-blockchain-import}, the import of the Bitcoin Blockchain up to block 570,000 took \textbf{5 hours, 32 minutes and 54 seconds}, which was performed in a VM with the specifications described earlier in section \ref{satoshi-specs}.
 \\\\
@@ -275,6 +277,7 @@ The alternative approaches to performing this task are discussed in section \ref
     \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}
     \item Blockchain2graph provides stress test information on their Github page which achieves 48,000 blocks in a 24 hour period.  \cite{RefWorks:doc:5cac6184e4b01c076c63e173}. They do not describe the hardware for this benchmark data; however their 'old' tests ran on an Intel Atom with 4GB RAM and 1 TB of disk space. 
 \end{itemize}
+
 
 \subsubsection{Existing solution comparison}
 With such different hardware and block heights used for each of the above benchmarks, it would not be a useful to extrapolate the results above to the same block height or making very rough estimates on the performance improvements gained if equivalent hardware was used. Comparisons therefore need to be made both qualitatively and pragmatically. 
@@ -288,18 +291,11 @@ Due to the relatively recent publication of TokenAnalysts article describing the
 Comparing TokenAnalyst's download stage to our download stage, they are able to achieve writing the entire Bitcoin Blockchain data to CSV in 6 hours, compared to our 12 hours [see section \ref{section-blockchain-download}]. Again, greater physical resources will have given them greater ability to parallelise the workload and achieve better performance. However, one weakness in our approach is the necessity to manually intervene between sub-jobs (i.e between download of blocks 100k-200k and 201k-300k etc). This was done in order to mitigate the consequences of the overall job failed, however this mitigation could be replicated in an automated fashion in order to reduce idle time across the download period. 
 
 \section{Performing a historical investigation}
+As described earlier in section \ref{background:significant-thefts}, there are several well known thefts of bitcoin excahnges, where very large sums of bitcoin were stolen. Using simple information available for these thefts, such as the wallet name and the date, we show how this investigation tool can be used to provide a better understanding into the flow of bitcoin funds away from its rightful owner.
+\\\\
+One example I use is the Linode Hacks which targeted bitcoinica.com on the 1st March 2012. I used walletexplorer.com to find the suitable wallet name for Bitcoinica for this date: this turned out to be Bitcoinica-old. I used this wallet name as a starting point of the investigation, only looking at transactions for the date 1st March 2012. 
 
-want order by desc/asc with price
-able to see incoming/outgoing easier - different colours
-filter to show only incoming/outgoing 
-Caching search params when navigating 
-identify outputs to which addresses in supernode
 
-The information I used to initiate the investigation:
-* Theft date: 1st March 2012
-* Exchange name: Bitcoinica 
-
-I used walletexplorer.com to find the suitable wallet name for Bitcoinica for this date: this turned out to be Bitcoinica-old. I used this wallet name as a starting point of the investigation, only looking at transactions for the date 1st March 2012. 
 \\\\
 Initially, I searched for the wallet name with a date filter only. This rendered the view shown in figure \ref{fig:theft-no-filter}.
 
@@ -319,7 +315,8 @@ I then proceeded to inspect the outputs that were spent on the 1st of March that
 The suspicious transactions I identified through this process due to the size of funds they spent on this day were:
 \begin{itemize}
 \item \texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}: This transaction in total spent \textbf{20,555.1 BTC} - sending all \textbf{20,555 BTC} to one address and \textbf{0.01 BTC} to another. Using the neighbour expansion feature, I traced the bulk of the funds: 
-20555BTC to 1DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif
+
+20555BTC to 1DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif\\
 25000BTC to 128u4nNS2DCbPk61aNAXLUTsHZt5FAEtit
 24900BTC to 18E4d3JtQNyUBdxQ4y8ck6RUKXEb7W4KA7
 23900BTRC to 1D56cDkVmoNGw7YmewL5boFwHyzEgDpygE
@@ -363,3 +360,28 @@ This was a sum of 10000 BTC sent to address 1AaXeH5DuP6FpPxdCn9RGXKWhSG4r9Hq9q. 
   \caption{A screenshot of the view when searching for entity Bitcoinica.com, filtered by date on 1st March 2012 and by price, showing outputs spent with value > 1000BTC. Showing specifically the transaction spending the highest value outputs}.
   \label{fig:theft-highest-value-outputs}
 \end{figure}
+
+\subsection{Areas identified for improvement}
+While performing the investigation using the tool, there were several features we imagined would have been useful in assisting us with the investigation, but are not currently provided by the tool. These features are:
+\begin{itemize}
+    \item Better distinction between incoming and outgoing funds (different colour links?), and potentially the ability to hide/show either incoming or outgoing only.
+    \item Caching search parameters: Many times we would view the result of a search and need to tweak with the filtering parameters, however the original search data is not cached and needed to be re-entrered which was time consuming.
+    \item Functionality to automatically identify peeling chains and organise the layout to show the main flows. 
+    
+\end{itemize}
+
+want order by desc/asc with price
+
+identify outputs to which addresses in supernode
+ability to check if an address belongs to a supernode 
+
+
+\subsection{Missed Objectives}
+\todo{complete}
+Continuous updates via Kafka
+Change address clustering
+
+\todo{drawback - only up to block 570k}
+
+only using one source for entity information 
+

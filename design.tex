@@ -10,62 +10,7 @@ Technical objectives I aim to acheive
     \item Implement an API which interfaces the database
     \item \todo{Fill this in}
 \end{enumerate}
-
-
-\subsection{Bitcoin Full Node}
-There already exists a Bitcoin Full Node running in a persistent Docker container which I am able to connect to. Using the RPC interface provided by Bitcoin Core, I am able to poll and fetch Bitcoin data. 
-
-\section{Technology Assessment}
-
-
-\subsubsection{Neo4J}
-
-
-
-
-
-\subsubsection{Overview of Approaches}
-\begin{enumerate}
-    \item Running a full Bitcoin node [see \ref{background-nodes}]. Download the entire Blockchain, use a custom script to parse the files write the data to the database. Keep database up to date using long polling / \gls{rpc}. 
-    \item Leverage some of the work done by a previous project in the Department of Computing at Imperial for Blockchain health monitoring \cite{RefWorks:doc:5c6bd151e4b041254f892045}. The initial population of the database would require re-running the RPC approach used in this project, then creating a Kafka consumer to keep the database up to date. 
-    \item Combining the two approaches of above: create a custom script for initial database population, but then use the Bitcoin health service for keeping the database up to date. 
-\end{enumerate}
-
-
-\subsection{Running a full node}
-Running a full node (Bitcoin Core) would download the entire Bitcoin Blockchain to the current tip; the blockchain is currently at ~197GB\cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8} in size and would consume a considerable amount of storage, and time to download). This would provide the .dat files containing all Bitcoin Blockchain data to the date of download. 
-
-\subsection{High Level Plan}
-There were two main phases to populating the database. First, historic data population. Then the second phase will be keeping the database up to date with new data as it arrives. Taking inspiration from TokenAnalyst's approach, and extending the existing work by Max Baylis as described in section \ref{design-db-previous-work}, I created a tool to successfully download the entire Bitcoin Blockchain, write it to a Neo4J database and keep it up to date in just a day.
-
-
-
-\subsection{Performing the Neo4J Import}
-I am now at the stage where I have the entire Bitcoin Blockchain in CSV file representation, with the relationship between all nodes. I can now use Neo4J's bulk import tool, passing it the CSV files, header files and relationship data. 
-
-\subsubsection{Bulk Import Tool}
-Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
-\\\\ 
-The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is periodicc commit' which allows the transaction state to be intermittently committed to storage, and the memory Neo4J is using to hold this state to be flushed. 
-\\\\
-The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
-
-
-\section{Public Address Entity Tagging}
-
-
-
-\section{Building the UI} 
-\begin{itemize}
-    \item File uploading: Building an express.js server that provides an endpoint for saving files that are uploaded. 
-    
-\subsection{Challenges}
-Problems encountered: no visual feedback that a request is pending when expanding its neighbours. Updated to make nodes pulse. 
-
-Currently getting ALL neighbours of a nodes, which for some transactions could be thousands of output nodes. Need to somehow truncate results.
-
-\section{Clustering Design}
-\subsection{Consequences of false positive clustering} 
+\section{}
 
 \subsection{Multiple addresses input one transaction}
 If two or more addressers are used as inputs to the same transaction, they are considered to be controlled by the same user. 
@@ -98,11 +43,4 @@ For each transaction, if multiple outputs meet the pattern of a change address, 
 
 
 
-\subsubsection{Allocating more resources}
-Neo4J provide a useful memory recommendation tool to suggest memory configuration parameters based on the size of a Neo4J database. 
 
-
-
-    
-    
-\end{itemize}

@@ -93,6 +93,23 @@ An investigation can be initiated by searching for a particular bitcoin address.
   \label{fig:neo4j-screenshot-basic-address-nodes}
 \end{figure}
 
+\subsubsection{Search by Entity Name}
+In order to facilitate investigations that relate to thefts of popular exchanges, we provided functionality to initiate an investigation using an entity name. If the entity name exists in the database (i.e. if it was collected in section \ref{section-entity-tagging} from walletexplorer.com, then the investigation tool will be able to show a bigger picture of all the outputs/transactions associated with the entity, rather than just a single address it uses [see fig \ref{fig:bitcoinica-old-result}]. This will provide a better picture of the true transactions associated with an entity at a given date/time. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/ui-screenshots/bitcoinica-search-form}\\[0.5cm]
+  \caption{A screenshot of the search form when searching for the entity 'Bitcoinica-old.com'}
+  \label{fig:bitcoinica-search-form}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/bitcoinica-enity-search}\\[0.5cm]
+  \caption{A screenshot of the investigation tool result when searching for the 'bitcoinica-old.com' entity}
+  \label{fig:bitcoinica-old-result}
+\end{figure}
+
 \subsubsection{Node information on hover}
 Information associated with each type of node is shown on hover. For example, hovering over a block will provide the time it was mined, its hash and the historical exchange rates at the time of mining (see fig \ref{fig:block-info-on-hover}). The node being hovered over will expand in size to indicate which node the information is being displayed for. There is also an option to dismiss the information box using the cross symbol in the top right corner. 
 \\\\
@@ -232,14 +249,12 @@ Additionally, to convey loading states, search forms display a animated loading 
 \subsubsection{Add custom nodes}
 It is possible to add custom nodes to the graph. The intention of this feature is the nodes will contain information to complement an active investigation; usually this data will have an off-chain source. There exists various custom node types, based on the typical types of off-chain data that may exist in an investigation. One of these types is photographic ID, which provides the option to upload an image to be displayed in a custom node. The form for adding a new custom node of photographic id type can be seen in figure \ref{fig:add-passport-form}. The user can additionally choose to define an arbitrary number of custom fields in a key, value format. 
 
-
 \begin{figure}[h!]
   \centering
   \includegraphics[width = 10cm]{./figures/ui-screenshots/add-passport-form-success}\\[0.5cm] 
   \caption{A screenshot of the form to add a custom node for passport data.}
   \label{fig:add-passport-form}
 \end{figure}
-
 
 \subsubsection{Link custom nodes to other nodes}
 Once a custom node exists, it can be associated with any other node shown on the graph. The user can achieve this by hovering over the custom node, so that the node data view displays, as shown in figure \ref{fig:custom-node-data}. This will open a view to introduce the new link, where the user can type the ID of the node they wish to create a link with. To help simplify this process, the target node will have a filtered autocomplete for all of the ID's that currently exist on the graph. The user can also change the direction of the link using the middle arrow button. The link name can then be any custom string defined by the user, and will show on the link as shown in figure \ref{fig:custom-link-graph}
@@ -276,8 +291,6 @@ The path finder feature allows the user to search for all paths between any two 
   \caption{A screenshot of the result of a path finder search between addresses \texttt{17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui} and \texttt{1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE}.}
   \label{fig:path-search-result}
 \end{figure}
-
-
 
 \subsubsection{Persisting Data}
 Instances where data needs to be persisted, such as when a user is uploading an image when creating a custom identification node, are handled by a simple web server implemented using expressjs. 

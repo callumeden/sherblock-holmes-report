@@ -199,3 +199,37 @@ I was able to verify that executing the clustering algorithm included all 3 of t
 On-demand clustering begins to become unsuitable for extremely large clusters; for example, an address belonging to the wallet of SatoshiDice.com \\\texttt{1LaM2aDLEP49kLbE6y2hvnbrP3agbMwEHb} would belong to an extremely large cluster of many thousands of addresses, and clustering on-demand would simply take far too long to provide an acceptable user experience (I experimented with the above address and killed the request after 30 minutes had elapsed). For addresses belonging to large wallets like the one above, I attempt to cluster using the entity tagging information obtained in section \ref{section-entity-tagging} rather than using the multi-input heuristic.
 Since this data is stored in the database, it is quick to traverse the \texttt{HAS\_ENTITY} relationships from a known address to find all of the addresses in the cluster. Therefore, I prioritise providing entity clustering information over input clustering in order to provide as much valuable information over a shorter time; improving user experience. \\\\
 For those addresses that do not have a link with a known entity, but exist as part of large address clusters, I constrain the search for linked addresses. After finding a specified number of linked addresses, the search for further addresses will complete and return a subset of the cluster to the user. The limit is configurable on the search form and the user has the ability to disable the limit in order to find the complete result, but with the warning that it could be a time-consuming operation. I feel this was a suitable compromise to make in order to provide the clustering functionality while also maintaining good user experience. 
+
+
+\subsection{Clustering using raw CSV data}\label{clustering-raw-csv}
+Due to the challenges experienced in the earlier approaches, where clustering was attempted once the data had already been imported to Neo4, a different approach was required where the clustering would be performed by generating new CSV relations to be used in the bulk import described in section \ref{section-blockchain-import}. 
+\\\\
+If the clustered addresses could be represented as relationships in the graph, where each address will be a neighbour of each address in its cluster, it will be efficient to query the database for addresses in the same cluster of a particular addres;  Neo4J is designed to traverse large number of relationships extremely quickly. This approach was attempted in the first two implementations documented in this section, however these approaches had the constraint of the transnational layer above the database causing the clustering algorithm to be very slow. By working with raw CSV data, we are able to circumvent this issue and leverage the powerful Neo4J Import tool used to populate the database [see section \ref{section-blockchain-import}] to include these relationships in the initial import. 
+
+\subsubsection{Approach}
+The idea of this approach is to generate a CSV file for the relationships representing addresses that should be clustered together. Each entry in the CSV file will have the format \texttt{ADDRESS\_IN\_CLUSTER, ANOTHER\_ADDRESS\_IN\_CLUSTER, INPUTS\_SAME\_TX} where \texttt{ADDRESS\_IN\_CLUSTER} and \texttt{ANOTHER\_ADDRESS\_IN\_CLUSTER} are two Bitcoin addresses and \texttt{INPUTS\_SAME\_TX} is the name of the relationship. 
+\\\\
+In order to get there, I needed to use the Bitcoin data in its CSV format downloaded in section \ref{section-blockchain-download} in order to identify which addresses should be clustered. The outline of the algorithm is as follows:
+\begin{enumerate}
+    \item Writes all mappings of outputs to addresses from CSV to the data store, and generate an index for fast lookups of addresses using output ID's.
+    \item For each address which inputs a transaction:
+    \begin{itemize}
+        \item checks the data store for other addresses which input the same transaction; if there are, update the data store entry with this address. Otherwise, create new data store entry mapping transaction to adress.
+        \item checks the data store for other transactions this address inputs, and adds this transaction to the list (or creates new entry if this is the first)
+    \end{itemize}
+    \item For every address seen across the entire Bitcoin blockchain, create a mapping from address to linked addresses. Linked addresses calculated by finding all transactions an address inputs from the data store, then for each transaction, find all other addresses that input a given transaction. These are the addresses to link with. 
+    \item Finally, we generate the CSV files containing the relationships to be imported into the database. Each address in the data store is iterated through, and its linked addresses fetched. A relationship is added to a CSV to represent each address to linked address mapping. 
+\end{enumerate}
+
+I implemented the above algorithm in Python and used MongoDB as a data-store. In order to expediate the process of writing large volumes of data to MongoDB, I forked several Python processes using the Python Multiprocessing library, enabling the program to leverage the availability of several cores to distribute the work. I additionally used Pandas to handle reading very large CSV files in several chunks rather than attempting to load the entire file into memory, which would not have been feasible. 
+
+\subsubsection{Execution}
+\begin{itemize}
+    \item The output relation population (approach point 1) completed in 3429.309226989746 seconds (~57 minutes) and consumed 105.206GB 
+    \item I then created an index on the output property for fast address lookups using Output ID's in the next stage. This increased the size of the dataset to 141.891GB. 
+    \item Generating transaction to address and address to transaction mappings in the datastore took ... \todo{results}
+    
+
+\end{itemize}{}
+
+

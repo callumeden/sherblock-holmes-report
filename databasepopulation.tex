@@ -4,6 +4,13 @@ The next stage of the project following downloading the historical Bitcoin Block
 \subsection{Why Neo4J?}
 Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. Neo4J is an open-source, NoSQL graph-database providing ACID compliant transactions.
 
+\subsubsection{Bulk Import Tool}
+Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
+\\\\ 
+The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is periodicc commit' which allows the transaction state to be intermittently committed to storage, and the memory Neo4J is using to hold this state to be flushed. 
+\\\\
+The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
+
 \subsection{Database Design}
 
 \subsubsection{Data Nodes}
@@ -64,7 +71,7 @@ $1/bin/neo4j-admin import
   --report-file "neo4j-import-debug-report.log" 
 \end{lstlisting}
 
-\subsection{Challenges \& Solutions}
+\subsection{Challenges \& Solutions}\label{neo4j-challenges}
 \subsubsection{Memory Issues}
 While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. The total amount of memory available (including swap) increased to over 30GB. This allowed the import tool to progress using swap once memory had been exhausted, albeit with increased memory access latency.
 

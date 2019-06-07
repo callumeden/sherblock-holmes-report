@@ -1,0 +1,75 @@
+\section{Reflection}
+
+\subsection{Working with data at scale}
+Data engineering on a vast scale was one of the most significant experiences and lessons taken from this project. At almost every stage in this project, it was essential to consider the algorithmic complexity of my implementation, in addition to how data is going to be stored when we no longer have the assumption it can be kept in memory; careful consideration of data storage solutions was required, and therefore consideration of the access latencies each will provide for particular queries (e.g. simple key,value lookups could be satifised by MongoDB with an index, but traversing the many relationships or path finding would be better suited to Neo4J, a graph database). 
+\\\\
+Throughout the project, we took a different approach to implementation to account for the scale of the dataset. Examples of this include:
+\begin{itemize}
+    \item Using Trie data structure for address to entity matching in section \ref{address-matching-trie}
+    \item Creating index's in Neo4j and MongoDB to enable fast retrieval of data in section \ref{neo4j-challenges} and \ref{clustering-raw-csv} respectively
+    \item Paginating data requesting/reading, such as when paginating requests to Neo4J in attempts at identifying and writing clustering relationships using Spring Data or reading huge CSV files in later clustering attempts in section \label{section-clustering}. 
+\end{itemize}
+
+Even with careful planning and anticipation regarding the size of the dataset, some implementations didn't work out (running into several OutOfMemory exceptions and stack overflows on the way), and an alternative approach was required; the several attempted implementations clustering is an example of this. It was challenges like those faced in the clustering implementation that are an example of learning to identify when it is necessary to attempt a completely different approach to achieve a goal. 
+\\\\
+Not only did the scale of the data-set require careful consideration of algorithmic implementation, it also required consideration to how to best parallelise work in order to fully utilise the hardware at our disposal. 
+Leveraging all CPU cores by parallelising tasks greatly expedited the time taken for tasks to complete; examples include the parallelised asynchronous approach to downloading bitcoin data by issuing many concurrent requests to the RPC endpoint in section \ref{section-blockchain-download}, using many Amazon EC2 instances to concurrently scrape the walletexplorer.com website for entity tagging data or forking several processes to distribute the workload of identifying addresses to cluster in section \ref{clustering-raw-csv}.
+
+\section{Future Work}
+Through our own vision of the end product of this tool, my discussions with the Metropolitan Police and Coinbase and through process of evaluating the tool's performance and ability to investigate historical thefts, we have curated a series of improvements and future directions to take this project with the end goal of building a tool for professional use. 
+
+\subsection{Infrastructure for keeping database up to date}
+One of the highest priority features for extending this project will be to implement the infrastructure required for keeping the Neo4J database up to date with the latest Bitcoin data. This will additionally include extending work in section \ref{section-entity-tagging} and \ref{section-price-data} to collect the latest wallet clustering information and exchange rate information for the new Bitcoin data. This has the goal of having a Neo4J database that reflects the current state of the Bitcoin Blockchain and will keep up to date autonomously, requiring no maintenance or physical intervention to do so. 
+
+\subsection{Path Finding User Experience}
+As shown in the evaluation, section \ref{evaluation:performance-under-load}, several concurrent path finding requests may lead to denial of service for several users. Additionally shown in the evaluation when profiling a single path finding request, section \ref{evaluation:path-finding-profile}, the performance and user experience still has much to be desired. 
+\\\\
+We believe a solution to improving the user experience to path finding could be to transform path finding from an interactive function to an asynchronous one. Path finding across such a huge data-set is a very resource intensive operation; solutions could include further investment in hardware, such as purchasing more physical hardware or delegating path finding to a container-based cloud solution. However, without this investment there is little that can be done to reduce the demand on resources that path finding requires. Therefore, an alternative solution could be to change path finding into a background job that takes a lower precedent to the other interactive tasks such as searching for an address. 
+\\\\
+Providing asynchronous functionality would consist of enabling the user to submit a query and returning the result to the user at a later date, in a non-interactive way; possibly through a unique link sent via email. The unique link, when followed, will then render the graphical result of their path finding query. In this way, the user does not become frustrated waiting for long path finding queries to complete, and other users less taxing requests are less impacted by other users submitting expensive queries. 
+
+\subsection{Incorporate information from more sources}
+Meeting with the Metropolitan Police and Coinbase led me to discover several new tools and data sources that they often use in their investigations; some provide free API's that could be used to integrate into this project and provide more features in the investigation view. For example, ShapeShifter could be used to flag transactions which exchange bitcoin for another currency; possibly providing a feature that allows funds to be tracked across several crypto-currencies. This would be most useful if the tool provided support for several more cryptocurrencies in addition to Bitcoin. Additionally, bitcoinswhoswhos.com can be use to flag addresses that have been reported to being involved in scams or have tags associated with them. 
+\\\\
+Integrating this data into the investigation tool will help make any potentially useful data immediately available, reducing the number of steps the user will need to take to retrieve it themselves. 
+\\\\
+Furthermore, as discussed in the evaluation, the entity to address associations are made based on data from a single source (walletexplorer.com). An improvement would be to retrieve this data from several sources in order to augment the existing entity to address mapping dataset, in addition to confirming additional mappings. Confirming mappings from multiple data sources could provide information to build a 'clustering confidence' rating, which could provide a risk/compliance score for how likely an address genuinely belongs to a cluster. 
+\\\\
+Address tag data could also be sourced ourselves, by taking a Similar approach to Sarah Micklejohns work in 'A fistful of bitcoins...' \ref{RefWorks:doc:5c3de7e3e4b0ea6196452d80}, where addresses are associated with services and exchanges by interacting with the services and exchanges. Obviously, this approach will not be free of cost since real transactions will need to be made, so is potentially not feasible to do on a rolling basis.
+
+\subsection{Saving investigations}
+The tool currently provides no functionality to save or store the state of the investigation view. When performing an investigation, it would rarely be an instantaneous process; an investigation would often span over a period of time such as several days or weeks. This assumption was confirmed through my discussions with the Metropolitan Police. Therefore, an important feature would facilitate the user to initiate several investigations and save their current state for re-visiting at a later date. 
+\\\\
+This functionality also highlights the importance of the deployment plan if this tool were to be used in a professional environment; it would be necessary to consider how investigation is stored securely so it cannot be accessed by unauthorised users, the owners of the product (us) or any other users of the product. This would potentially require an on-site hardware deployment for on-site (the users location) data storage, or security guarantees regarding the isolation and accessibility of information if stored off-site (our location / cloud provider). 
+\\\\
+Further functionality related to investigation state, which was highlighted by the Mat Stanley as a useful feature, would be to identify when an address re-appears in an investigation that has appeared in previous investigations by that user/group of users. 
+
+\subsection{Exporting investigation data}
+Data from an investigation conducted using the tool may be required as evidence, such as in court to be viewed by a jury. The data must therefore be exportable as a standardised format, such as CSV. It would additionally be useful to be able to share an investigation with colleagues; a useful feature would be the facility to send a unique link to another user which generates the same investigation view. 
+
+\subsection{More Clustering Heuristics}
+The first useful clustering heuristic to add to the tool will be the same-change-address heuristic as described in section \ref{background:cluster-change-address} with infrastructure in place to continuously cluster new incoming bitcoin data and improve existing clustering on historical data (i.e. discount addresses previously considered change-addresses if they are used again as outputs of new transactions). 
+\\\\
+Additional heuristics to incorporate into the tool could include behaviour based analysis, as described in section \ref{background:behaviour-clustering} or consumer heuristic and optimal change heuristic as discussed in section 
+\ref{background:consumer-wallet-heuristic} and \ref{background:optimal-change-heuristic} respectively. For every clustering heuristic that id added, it should be configurable by the user (i.e ability to turn any combination of clustering heuristics on/off) as each may provide the user with different information. 
+\\\\
+Another method of grouping / tagging distinct addresses could be by the address type. As discussed in section \ref{background-address-types} there are different types of Bitcoin addresses, such as Pay-to-PubKey-Hash (P2PKH) addresses or Pay-to-Script-Hash (P2SH) addresses. It may be useful to make a visual distinction between these types of addresses as they could potentially represent a different role in an organisation; for instance a P2SH address used in a multi-signature transaction may be useful in understanding what the purpose of the transaction is, compared to if it was a P2PKH address. 
+
+\subsection{Set up watches for nodes}
+Rather than periodically checking if a particular address has spent its outputs, it would be far more useful and efficient for the investigator to be able to set up a notification whenever some particular state regarding that address changes. This idea could be extended to entire wallets, such as watching transactions exceeded a certain value being spent by the 'Mt.Gox' wallet. Additionally, it could perhaps be possible to create watches for structural/usage patterns occurring across the blockchain. For example, 'watch for this adddress being involved in a peeling chain'. 
+
+\subsection{UI Improvements}
+Some smaller improvements/feature additions to the UI that can improve existing functionality 
+\begin{itemize}
+    \item Add a UI feature that acts as a legend for the different types of nodes 
+    \item Extend path finding tool to also accept entity names in addition to addresses
+    \item Ability to collapse nodes relationships and remove nodes entirely 
+    \item Auto-populate search form fields with previous search data 
+    \item Improvements to price \& date filtering by allowing 'greater than date/value' or 'less than date/value' rather than requiring a range be provided
+    \item Improve organisation of nodes: more intelligent layout of nodes based on their type, the direction of flow of funds, the volume of the funds etc. 
+\end{itemize}
+
+\subsection{Several Crypto-Currencies}
+Several of the existing digital forensic tools [see \ref{background-existing-tools}] support several additional cypto-currencies to Bitcoin, including Ethereum, Litecoin, Bitcoin Cash and Dash. Providing support for these currencies would be a natural extension of this project; however it will be no small task. Infrastructure will be required to perform a bulk import of all of the currencies respective blockchains and infrastructure able to keep all blockchains up to date with the most recent data. In addition, the various clustering heuristics will likely differ per blockchain, so could need re-implementation or different heuristics provided all-together for each distinct chain. 
+\\\\
+A potentially constraint here could be hardware; the download of several blockchains will require a very sizeable amount of SSD (for reasonable access latency) which may require considerable financial investment. 
