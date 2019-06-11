@@ -1,6 +1,6 @@
 \section{Clustering : Multiple Input Heuristic}\label{section-clustering}
 
-The multi-input transaction clustering heuristic as introduced in section \ref{background:multi-input-tx} and as described in the paper 'A fistful of bitcoins...' \ref{RefWorks:doc:5c3de7e3e4b0ea6196452d80} is one of the simpler, yet most effective clustering heuristics for Bitcoin. 
+The multi-input transaction clustering heuristic as introduced in section \ref{background:multi-input-tx} and as described in the paper 'A fistful of bitcoins...' \cite{RefWorks:doc:5c3de7e3e4b0ea6196452d80} is one of the simpler, yet most effective clustering heuristics for Bitcoin. In this section, I present the several implementations of the clustering algorithm which uses the same input heuristic. I attempted clustering with many different approaches due to issues discovered while running each clustering algorithm. We also present the successful implementation in section \ref{clustering-raw-csv}.
 
 \subsection{Java Algorithm using Spring Data}
 I implemented an algorithm which performed this clustering in Java; this used the Spring Data interface to the database to fetch all transactions in the database. For each transaction, it then fetches each input and the address each input is locked to. For those transactions with several inputs, each locked to a distinct address, each address is fetched and the set of addresses for the particular transaction are identified as a cluster and therefore under the control of the same user, using this heuristic. To represent this clustering in the database, every address in the cluster will be connected to every other address in the cluster, in a totally connected graph style, using a new relationship type \texttt{INPUT\_HERUISTIC\_LINKED\_ADDRESS}. 
@@ -28,7 +28,7 @@ I anticipated the first issue I encountered due to to the size of the dataset I 
 \\\\
 I solved this issue using Paging. It is possible using Spring Data to use Paging for large requests; I used this to fetch transactions in more granular batches which could be processed before fetching the next batch. This helped tackle memory constraints as the algorithm didn't need to load \textbf{all} transactions up front. See code in Listing \ref{lst:clustering-java}
 \\\\
-Although progress was being made more steadily using paging, I still experienced performance issues while trying to cluster all addresses for the blockchain. After running the above algorithm for 24 hours, only 150,000 transactions had been processed. This was in-feasibly slow, most likely due to the overhead of using Spring Data to fetch every transaction and every Output for the transaction; I now needed to find a more efficient alternative approach. 
+Although progress was being made more steadily using paging, I still experienced performance issues while trying to cluster all addresses for the blockchain. After running the above algorithm for 24 hours, only 150,000 transactions had been processed. This was infeasibly slow, most likely due to the overhead of using Spring Data to fetch every transaction and every Output for the transaction and writing back new relations between each clustered address; I now needed to find a more efficient alternative approach. 
 \\\\
 
 \begin{lstlisting}[caption={Java Implementation using Paging}, label={lst:clustering-java}, language=Java, breaklines=true, basicstyle=\small]
@@ -202,34 +202,22 @@ For those addresses that do not have a link with a known entity, but exist as pa
 
 
 \subsection{Clustering using raw CSV data}\label{clustering-raw-csv}
-Due to the challenges experienced in the earlier approaches, where clustering was attempted once the data had already been imported to Neo4, a different approach was required where the clustering would be performed by generating new CSV relations to be used in the bulk import described in section \ref{section-blockchain-import}. 
+Due to the challenges experienced in the earlier approaches, where clustering relations were added once the Neo4J database had already been populated and hence was, a different approach was required where the clustering would be performed by generating new CSV relations to be used in the bulk import described in section \ref{section-blockchain-import}. 
 \\\\
 If the clustered addresses could be represented as relationships in the graph, where each address will be a neighbour of each address in its cluster, it will be efficient to query the database for addresses in the same cluster of a particular addres;  Neo4J is designed to traverse large number of relationships extremely quickly. This approach was attempted in the first two implementations documented in this section, however these approaches had the constraint of the transnational layer above the database causing the clustering algorithm to be very slow. By working with raw CSV data, we are able to circumvent this issue and leverage the powerful Neo4J Import tool used to populate the database [see section \ref{section-blockchain-import}] to include these relationships in the initial import. 
 
 \subsubsection{Approach}
 The idea of this approach is to generate a CSV file for the relationships representing addresses that should be clustered together. Each entry in the CSV file will have the format \texttt{ADDRESS\_IN\_CLUSTER, ANOTHER\_ADDRESS\_IN\_CLUSTER, INPUTS\_SAME\_TX} where \texttt{ADDRESS\_IN\_CLUSTER} and \texttt{ANOTHER\_ADDRESS\_IN\_CLUSTER} are two Bitcoin addresses and \texttt{INPUTS\_SAME\_TX} is the name of the relationship. 
 \\\\
-In order to get there, I needed to use the Bitcoin data in its CSV format downloaded in section \ref{section-blockchain-download} in order to identify which addresses should be clustered. The outline of the algorithm is as follows:
-\begin{enumerate}
-    \item Writes all mappings of outputs to addresses from CSV to the data store, and generate an index for fast lookups of addresses using output ID's.
-    \item For each address which inputs a transaction:
-    \begin{itemize}
-        \item checks the data store for other addresses which input the same transaction; if there are, update the data store entry with this address. Otherwise, create new data store entry mapping transaction to adress.
-        \item checks the data store for other transactions this address inputs, and adds this transaction to the list (or creates new entry if this is the first)
-    \end{itemize}
-    \item For every address seen across the entire Bitcoin blockchain, create a mapping from address to linked addresses. Linked addresses calculated by finding all transactions an address inputs from the data store, then for each transaction, find all other addresses that input a given transaction. These are the addresses to link with. 
-    \item Finally, we generate the CSV files containing the relationships to be imported into the database. Each address in the data store is iterated through, and its linked addresses fetched. A relationship is added to a CSV to represent each address to linked address mapping. 
-\end{enumerate}
-
-I implemented the above algorithm in Python and used MongoDB as a data-store. In order to expediate the process of writing large volumes of data to MongoDB, I forked several Python processes using the Python Multiprocessing library, enabling the program to leverage the availability of several cores to distribute the work. I additionally used Pandas to handle reading very large CSV files in several chunks rather than attempting to load the entire file into memory, which would not have been feasible. 
-
-\subsubsection{Execution}
+The outline of the algorithm is as follows:
 \begin{itemize}
-    \item The output relation population (approach point 1) completed in 3429.309226989746 seconds (~57 minutes) and consumed 105.206GB 
-    \item I then created an index on the output property for fast address lookups using Output ID's in the next stage. This increased the size of the dataset to 141.891GB. 
-    \item Generating transaction to address and address to transaction mappings in the datastore took ... \todo{results}
-    
-
-\end{itemize}{}
-
+    \item for each transaction $tx$ on the Blockchain
+    \begin{itemize}
+        \item Fetches inputs $ins$ of $tx$
+        \item Maps $ins$ to the addresses the input is locked to and generates a set of addresses $as$ which input the transaction 
+        \item Writes a new CSV relationship entry for every pair $a1, a2$ in $as$ where $a1 != a2$
+    \end{itemize}
+    \item The new input relations CSV files are then used in the Neo4J import tool to re-import the entire database, now with clustering information
+\end{itemize}
+I leveraged concurrency in the implementation of the above algorithm. I implemented the algorithm in Java, splitting the transactions to be iterated through into seperate chunks to be submitted to thread pool workers. I addressed possible race conditions and file lock contentions by having each thread writing to its own output CSV file.  
 

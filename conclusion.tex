@@ -1,6 +1,18 @@
 \section{Reflection}
+The purpose and demand for a tool for digital forensic investigations is very apparent; whether it be used for criminal investigations by bodies such as the Metropolitan Police, meeting compliance requirements at exchanges such as Coinbase or other used for compliance and audibility at financial institutions who are increasingly adopting cryptocurrency solutions. 
+\\\\
+With appropriate hardware (several powerful cores and several TB of SSD storage), the task of importing Bitcoins Blockchain into a graph database is very feasible and can be achieved in a very reasonable amount of time, specifically if using Neo4J's batch import tool. 
+\\\\
+Providing accurate clustering information requires continuous investment; whether it be actively curating a list of addresses known to be under control of a particular exchange, or by hardening clustering algorithms such as same-change-address by using new bitcoin data to influence previous clustering decisions and achieve a better true-positive clustering rate. 
+\\\\
+Address clustering information should be stored with the blockchain data itself rather than attempting to perform clustering on demand; clustering on-demand can lead to dramatic variations in request response times based on the size of a cluster. 
+\\\\
+An interactive graphical display using force directed graphs for navigating the blockchain data is very effective at conveying blockchain data in a 
 
-\subsection{Working with data at scale}
+\subsection{Future of Crypto-Currency Law Enforcement}
+The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it, in comparison to Bitcoin usage. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
+
+\subsubsection{Working with data at scale}
 Data engineering on a vast scale was one of the most significant experiences and lessons taken from this project. At almost every stage in this project, it was essential to consider the algorithmic complexity of my implementation, in addition to how data is going to be stored when we no longer have the assumption it can be kept in memory; careful consideration of data storage solutions was required, and therefore consideration of the access latencies each will provide for particular queries (e.g. simple key,value lookups could be satifised by MongoDB with an index, but traversing the many relationships or path finding would be better suited to Neo4J, a graph database). 
 \\\\
 Throughout the project, we took a different approach to implementation to account for the scale of the dataset. Examples of this include:
@@ -14,6 +26,7 @@ Even with careful planning and anticipation regarding the size of the dataset, s
 \\\\
 Not only did the scale of the data-set require careful consideration of algorithmic implementation, it also required consideration to how to best parallelise work in order to fully utilise the hardware at our disposal. 
 Leveraging all CPU cores by parallelising tasks greatly expedited the time taken for tasks to complete; examples include the parallelised asynchronous approach to downloading bitcoin data by issuing many concurrent requests to the RPC endpoint in section \ref{section-blockchain-download}, using many Amazon EC2 instances to concurrently scrape the walletexplorer.com website for entity tagging data or forking several processes to distribute the workload of identifying addresses to cluster in section \ref{clustering-raw-csv}.
+
 
 \section{Future Work}
 Through our own vision of the end product of this tool, my discussions with the Metropolitan Police and Coinbase and through process of evaluating the tool's performance and ability to investigate historical thefts, we have curated a series of improvements and future directions to take this project with the end goal of building a tool for professional use. 
@@ -47,9 +60,29 @@ Further functionality related to investigation state, which was highlighted by t
 \subsection{Exporting investigation data}
 Data from an investigation conducted using the tool may be required as evidence, such as in court to be viewed by a jury. The data must therefore be exportable as a standardised format, such as CSV. It would additionally be useful to be able to share an investigation with colleagues; a useful feature would be the facility to send a unique link to another user which generates the same investigation view. 
 
+\subsection{Change Address Clustering Heuristic}
+The first useful clustering heuristic to add to the tool will be the same-change-address heuristic as described in section \ref{background:cluster-change-address} with infrastructure in place to continuously cluster new incoming bitcoin data and improve existing clustering on historical data (i.e. discount addresses previously considered change-addresses if they are used again as outputs of new transactions).
+\textbf{Algorithm:}
+\begin{itemize}
+    \item for each transaction $tx$ on the blockchain:
+    \begin{itemize}
+        \item get outputs $outs$ of $tx$
+        \item get inputs $ins$ of $tx$
+        \item initialise valid change coutner = 0
+        \item continue if length of outputs $<$ 2 
+        \item for each output $out$ of $outs$:
+        \begin{itemize}
+            \item fetch address $a$ output is locked to 
+            \item check $a$ has no other outputs locked to it (robustness: change address has one input), continue otherwise
+            \item check $out$ is not in $ins$ (robustness: not self-change), continue otherwise
+            \item $out$ is a valid change output, increment valid change counter, remember $a$ as $validChangeAddress$
+        \end{itemize}
+        \item iff valid change counter == 1, return $validChangeAddress$ as a valid change address
+    \end{itemize}
+    \item If there was a valid change address $validChangeAddress$, then create new relationship between addresses which input the transaciton and the change address
+\end{itemize}
+
 \subsection{More Clustering Heuristics}
-The first useful clustering heuristic to add to the tool will be the same-change-address heuristic as described in section \ref{background:cluster-change-address} with infrastructure in place to continuously cluster new incoming bitcoin data and improve existing clustering on historical data (i.e. discount addresses previously considered change-addresses if they are used again as outputs of new transactions). 
-\\\\
 Additional heuristics to incorporate into the tool could include behaviour based analysis, as described in section \ref{background:behaviour-clustering} or consumer heuristic and optimal change heuristic as discussed in section 
 \ref{background:consumer-wallet-heuristic} and \ref{background:optimal-change-heuristic} respectively. For every clustering heuristic that id added, it should be configurable by the user (i.e ability to turn any combination of clustering heuristics on/off) as each may provide the user with different information. 
 \\\\
@@ -73,3 +106,4 @@ Some smaller improvements/feature additions to the UI that can improve existing 
 Several of the existing digital forensic tools [see \ref{background-existing-tools}] support several additional cypto-currencies to Bitcoin, including Ethereum, Litecoin, Bitcoin Cash and Dash. Providing support for these currencies would be a natural extension of this project; however it will be no small task. Infrastructure will be required to perform a bulk import of all of the currencies respective blockchains and infrastructure able to keep all blockchains up to date with the most recent data. In addition, the various clustering heuristics will likely differ per blockchain, so could need re-implementation or different heuristics provided all-together for each distinct chain. 
 \\\\
 A potentially constraint here could be hardware; the download of several blockchains will require a very sizeable amount of SSD (for reasonable access latency) which may require considerable financial investment. 
+

@@ -1,30 +1,37 @@
 \chapter{Introduction}
+Cryptocurrencies provide us with a mechanism to send a unit of cryptocurrency to anyone, directly, anywhere. Cryptocurrencies are entirely virtual; there are no physical coins, or even digital coins per se. There are no banks involved, no mediators and no central reserve controlling coin supply; what cryptocurrencies often have, however, are cryptography principles such as elliptic curve cryptography and one-way hash functions that help secure ownership of funds. Cryptocurrencies can be classified by their ability to establish ownership, protecting against double spending, ensuring anonymity/privacy and minting new currency \cite{RefWorks:doc:5cfe1c72e4b096a2b4747aac}. 
+\\\\
+There are several leading cryptocurrencies which, together, dominate the cryptocurrency market capitalisation [see figure \ref{fig:cryptocurrency-capitalisaiton}]. The biggest player of all leading cryptocurrencies is Bitcoin. 
 
-Bitcoin is a peer-to-peer decentralised cryptocurrency system that now has the attention of the broad public population of non-specialists around the world. In early 2017, Bitcoin hit an all-time high trading price, consuming media attention all around the world, and subsequently making Bitcoin quite the household name. 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 12cm]{./figures/marketcapitalisation.pdf}\\[0.5cm] 
+  \caption{Market Capitalisation of leading Cryptocurrencies from 2015-2019  \cite{RefWorks:doc:5cfe03c0e4b091a4a00f7e76}}
+  \label{fig:cryptocurrency-capitalisaiton}
+\end{figure}
+
+
+\section{Bitcoin}
+Bitcoin is a cryptocurrency that has become a household name in recent years, it dominated news headlines on several occasions in 2017 as its price dramatically climbed and peaked at over \$19,000 in December 2017, a 1,824\% value increase since January of the same year \cite{RefWorks:doc:5cfb6adce4b03a90bd6e557d}. What may not be as widely known is the excellent vehicle and tool Bitcoin can be for illegal activity. Bitcoin's relative lack of tractability, perceived anonymity and lack of regulatory oversight \cite{RefWorks:doc:5cfb837fe4b0d23f20773924}, compared to traditional fiat currencies, has rapidly attracted criminals such as illegal arms dealers, kidnappers, people smugglers, drug traffickers, blackmailers and terrorism financers \cite{RefWorks:doc:5cfb79e2e4b0132e0223fff6} \cite{RefWorks:doc:5c49e7c4e4b0d339f6625a91}.
 \\\\
-Boasting the capability of making 'anonymous' payments to anyone across the globe, Bitcoin was relatively quickly adopted by those wishing to circumvent traditional payment mechanisms in order to reduce their traceability to criminal activity. The decentralised nature of Bitcoin creates difficulties for law enforcement to detect suspicious activity and identifying users. 
+This unregulated nature of cryptocurrencies has been a cause of great concern for governing bodies; the Chinese government banned residents from trading cryptocurrencies in 2017 and the Bank of England's Governer Mark Carney has publicly expressed concerns about cryptocurrencies \cite{RefWorks:doc:5cfbc8fee4b05850fa02e710}. 
+Recent studies have estimated over a quarter of all Bitcoin users (26\%) and nearly half of all Bitcoin transactions (46\%) are associated with illegal activity \cite{RefWorks:doc:5cfbc8fee4b05850fa02e710}; in March 2017 46\% of Bitcoin's transaction value equated to \$76 billion, which is close to the scale of the US and European markets for illegal drugs \cite{RefWorks:doc:5cfbc8fee4b05850fa02e710}. Despite numerous 'darknet' marketplace seizures, such as the infamous Silk Road which was shut down by the FBI in 2014 who seized over \$4 million worth of bitcoin \cite{RefWorks:doc:5cfbc8fee4b05850fa02e710}, the amount of illegal activity associated with bitcoin remained close to it's all time high as of April 2017 \cite{RefWorks:doc:5cfbc8fee4b05850fa02e710}. 
 \\\\
-The scale at which Bitcoin is used for illicit means can be observing the scale and sophistication of a darknet marketplaces, such as Silk Road. Furthermore, the illicit usage of Bitcoin isn't limited to trading on darknet marketplaces; Bitcoin has been known to be used in cases of extortion, ransom, malware and money laundering.  \cite{RefWorks:doc:5c49e7c4e4b0d339f6625a91}. 
-\\\\
-As our understanding and analytical tools of the Blockchain develops, we have the ability to gain more visibility into the real world that lies behind the mask of the pseudo-anonymous cryptocurrency, making the task of using Bitcoin in an illict way more challenging. In fact, several studies have shown it is possible to de-anonymise much of Bitcoins network activity and track the flow of bitcoin through analysis of the public ledger. Therefore, in this project I have set out to provide law enforcement with a tool to do exactly that. 
-\\\\
-More specifically, the key objectives of this project are:
+However, many cryptocurrencies have a distinct weakness for those wishing to evade the law; every transaction is published on the 'public ledger' that is the Blockchain and will remain forever accessible. Meanwhile, the capability of digital forensic tools advance further as research into de-anonymising Bitcoin activity continues. Right now, the individual identities of users may be masked by the pseudo-anonymity of their Bitcoin address, but through heuristics based on idioms of use, knowledge of wallet software and even analysis of user behaviour, Bitcoin addresses can be grouped into \textit{clusters} [see \ref{background:clustering}] of addresses known to be controlled by a single user. Combine such clustering with a graphical, interactive representation of Blockchain data and suddenly Bitcoin activity becomes more transparent and digital forensic investigations are made more accessible. 
+
+\section{Contributions Outline}
+This project sets out to build such a graphical, interactive tool that can be used to assist with digital forensic investigations across the Bitcoin Blockchain. The specific contributions of this project are:
 \begin{itemize}
-    \item Enable members of the Department of Computing at Imperial wishing to interact with Bitcoin Blockchain data to do so with ease using a specifically built API. 
-    \item Enable users to gain improved insights into Bitcoin activity through an easier to understand and use interactive representation of the data. 
-    \item Enable users to easily map from public addresses to known users/entities. 
-    \item Enable users to view transaction value between addresses by the \gls{fiat-money} value they represented at the time of the transaction. 
+    \item An extension of the Blockchain Health project by Max Baylis which facilitates downloading the Bitcoin Blockchain and writing data in a CSV format suitable for import into a graph database.
+    \item A tool for retrieving historical bitcoin exchange rate data in several fiat currencies.
+    \item A tool for retrieving mappings of wallets (entities) to the Bitcoin addresses known to be under their control from \textit{walletexplorer \footnote{http://www.walletexplorer.com}}.
+    \item An implementation of algorithms for clustering, using multi-input and same-change-address heuristics.
+    \item A single page web-application which provides a graphical, interactive interface to Bitcoin's entire history; boasting near-instantaneous response times when navigating through Bitcoins 420+ million transactions \cite{RefWorks:doc:5cfba9cde4b0b8ab9a52e35c} using intuitive graph controls. The tool provides various features to initiate and assist with a digital forensic investigation for Bitcoin.
 \end{itemize}
 
-Having a tool that provides genuine insights into Bitcoin activity could be an invaluable resource to law enforcement teams investigating illegal activity; it could provide a level transparency to their investigations that they did not previously have, in addition to lowering the bar of entry to Bitcoin investigations, making it possible for insights to be drawn by users who are non-experts in the field of cryptocurrency. 
+\todo{ why bitcoin in particular }
 
 
-\section{Contributions}
 
 
-\subsection{A foundation for future Bitcoin projects}
-Many research projects (including this one) require a full copy of the Blockchain downloaded and stored in a way that facilitates interaction with and analysis of the data. Until now, this has been a laborious and time-consuming task of downloading the full Bitcoin Blockchain, then parsing and writing this to a database. This process can have the timescale of multiple weeks and leads to much duplicated work and friction when beginning these types of projects. A challenge with this approach was the necessity to manually update the database with new Blockchain data, so data is historical only.
-\\\\
-Aiming to solve the above issues, I will be building a service which continuously consumes the most recent Bitcoin data and writes this data to the database. I then plan to build an API to interface with the database, allowing anyone in the department to interact with the data in a non-mutable way. 
-           
  

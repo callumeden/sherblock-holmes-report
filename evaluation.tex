@@ -1,29 +1,25 @@
+\chapter{Evaluation}
 \section{Industry \& Metropolitan Police Investigators} 
-In order to gain feedback from the target end-users of this tool I arranged a meeting with Mat Stanley, a Detective Sergeant of a London Metropolitan Police crypto-currency investigation unit and, in order to also gain a private sector industry perspective, Iggy Azad who is a senior investigator at Coinbase. Iggy Azad was previously also with the Metropolitan Police before taking on a private sector role at Coinbase. 
+In order to gain feedback from the target end-users of this tool I arranged a meeting with Mat Stanley, a Detective Sergeant of a London Metropolitan Police crypto-currency investigation unit and, in order to also gain a private sector industry perspective, Iggy Azad who is a senior investigator at Coinbase.
 \\\\
-I arranged the meeting with the goal of obtaining critical feedback on the investigation tool based on their domain knowledge of carrying out investigations and their experience with other similar proprietary tools which have been built to achieve similar goals. I also wanted to better understand the challenges that law enforcement face when investigating crypto-currency based crime and potentially what the current solutions are not adequately providing the investigators with. 
+I arranged the meeting with the goal of obtaining critical feedback on the investigation tool based on their domain knowledge and experiences investigating cryptocurrency crime and how they currently achieve this using existing tools. I used this opportunity to find out more about the offerings of the proprietary software on the market, such as ChainAnalysis, they have had experience with in order to compare the strengths and shortcomings of existing solutions, which I could not previously do in background section \ref{background-existing-tools} due to the cost of such tools. 
 
 \subsection{Successes and Weaknesses}
-Through my conversation with Mat and Iggy, and through demonstrating the current functionality of the tool, I obtained feedback such that I was able to identify areas of success and areas of weakness in the current implementation. These areas are summarised below:
+Through my conversation with Mat and Iggy, and through demonstrating the current functionality of the tool, I obtained qualitative feedback such that I was able to identify areas of success and areas of weakness in the current implementation. These areas are summarised below:
 
 \begin{itemize}
-    \item \textbf{Weakness}: The different types of nodes aren't very clear (\textit{Implicit: I had to explain what the different types of nodes represent}). \textbf{Actionable}: Introduce UI feature to make the types of nodes more apparent. 
-    \item \textbf{Success}: The date and price filtering functionality is often very valuable to investigators. This is often particularly useful when tracing funds through a mixing service [see \ref{background-mixing-service}]. 
+    \item \textbf{Weakness}: The different types of nodes aren't very clear (\textit{Implicit: I had to explain what the different types of nodes represent}).
+    \item \textbf{Success}: The date and price filtering functionality is often very valuable to investigators. This is often particularly useful when tracing funds through a mixing service [see mixing services in background section \ref{background-mixing-service}]. 
     \item \textbf{Success}: Displaying the historical exchange rate is also very important to investigators; this enables them to better understand the true value of the flow of funds, which may be otherwise difficult without historical exchange rates due to the volatility in the value of Bitcoin. 
-    \item \textbf{Success \& Weakness}: The Path Finding feature is very useful in investigations, yet not provided by some of the solutions they currently use. However, It would be useful to be able to type the name of a wallet rather than an address and the path finding happen for any address belonging to the wallet. 
+    \item \textbf{Success \& Weakness}: The Path Finding feature is very useful in investigations, yet not a feature provided by some of the software products they currently use. However, It would be useful to be able to type the name of a wallet rather than an address and the path finding happen for any address belonging to the wallet. 
     \item \textbf{Success}: Clustering using the wallet information obtained in section \ref{section-entity-tagging} will prove extremely useful; this data is also provided by their ChainAnalysis software. 
     \item \textbf{Success}: The ability to toggle on/off clustering heuristics is very desirable and not provided by several other solutions. 
-    \item \textbf{Success \& Weakness}: Ability to add custom information (through the custom node feature) is very useful; however, adding information such as Photographic ID is not usually required at this stage of the investigation. The tool will be used in the run up to issuing a warrant to obtain identification from exchanges (who should have it due to KYC [see Know Your Customer \ref{background-kyc}). Additionally, adding this additional data would be more intuitive to exist as data associated with a node, rather than existing as a separate node itself. 
+    \item \textbf{Success \& Weakness}: Very common usage is to add additioanl information to compliment an investigation, so being able to do so through the custom node feature is very useful; however, adding information such as Photographic ID is not usually required at this stage of the investigation. The tool will be used in the run up to issuing a warrant to obtain identification from exchanges (who should have it due to KYC [see Know Your Customer in background section \ref{background-kyc}). Additionally, it would be more intuitive to store this data with a particular node, rather than existing as a separate node itself. 
     \item \textbf{Weakness}: Secure data storage not addressed by current deployment : If storing investigation specific data, a secure solution is needed such that only the user could access it. 
 \end{itemize}
 
-\subsection{Current Solutions}
-Mat spoke about the current solutions employed at the Met Police in order to help investigate crimes; these solutions include proprietary software, such as ChainAnalysis, and several others as described in section \ref{background-existing-tools}. 
-\\\\
-Questioned why so many tools were used, Mat explained that each tool provides something different, such as different clustering heuristics or their data has originated from a different source. Often data obtained from each tool is distinct, but complementary to the overall investigation.  
-
 \subsection{Desirable features}
-There were a number of features Mat and Iggy explained are very useful to their investigations and are often provided by the current solutions that they use, but were not provided by my tool. These are:
+Further to my conversation with Mat and Iggy, I was able to curate a list of features that would be useful to someone wishing to investigate cryptocurrency using this tool. These features are:
 \begin{itemize}
     \item Support for several crypto-currencies. Namely: Ethereum, Litecoin, Bitcoin, Bitcoin Cash, Dash
     \item Ability to save a graph state as an investigation and come back to it later
@@ -32,41 +28,33 @@ There were a number of features Mat and Iggy explained are very useful to their 
     \item Automatically detect and alert when an address re-surfaces in a new investigation that was seen in a previous investigation 
     \item Ability to collapse nodes/remove nodes from graph 
     \item Offering a compliance/risk score with clustering information - is the data verified? Does the data come from multiple independent sources? 
-    \item Enhance clustering of addresses by considering different types of addresses [see address types \ref{background-address-types}]
-    \item Incorporate address tag information - they often have some significance, e.g tags may relate to a gamer tag which can be searched for in other datasets. Also vanity addresses often have significance, may include parts of their name which can be used to help link addresses [see vanity addresses \ref{background-vanity-addresses}]
+    \item Enhance clustering of addresses by considering different types of addresses [see address types in background section \ref{background-address-types}]
+    \item Incorporate address tag information - they often have some significance, e.g tags may relate to a gamer tag which can be searched for in other datasets. Also vanity addresses often have significance, may include parts of their name which can be used to help link addresses [see vanity addresses in background section \ref{background-vanity-addresses}]
 \end{itemize}
 
-\subsection{Data Sources}
-In addition to the additional features, Mat and Iggy also helped me additional types of resources that can be used as datasources to feed functionality for the tool. These data sources are:
+\subsection{Additional Data Sources}
+In addition to the additional features, Mat and Iggy also helped me identify additional resources available that could potentially be used as data sources to feed functionality for the tool. These data sources are:
 \begin{itemize}
     \item oxt.me : Useful for looking at multi-signature transactions
     \item bitcoinswhoswho.com : Check addresses against reported scams or see if the address has associated tags
-    \item Shapeshifter : Given a TXID, tells you where the coin went (which currency?). Also has a free API! Could integrate this information into the tool to help track funds across crypto-currencies. 
+    \item Shapeshifter : Given a TXID, tells you where the coin went (which currency?). Also has a free API.
 \end{itemize}
-
-Furthermore, regarding beginning an investigation, Mat and Iggy spoke about how addresses of interest may be discovered to use as a starting point of an investigation:
-\begin{itemize}
-    \item Donation Requests: For example Wiki Leaks or Greenpeace donation addresses. 
-    \item Bitcoin addresses that have been found on machines seized as part of an investigation. 
-    \item Addresses in chat-rooms (e.g telegram) or on forum sites such as Reddit
-\end{itemize}
-
-\subsection{Future of Crypto-Currency Law Enforcement}
-The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it, in comparison to Bitcoin usage. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
 
 \section{Performance} 
+In this section, I gather quantitative measurements on metrics such as query response times in order to have measurements on the typical users experience when making various requests. 
+
 \subsection{Individual Cypher Query Profiling}
-In this section, I use the Cypher command \texttt{PROFILE} to profile queries in isolation for randomly selected data. Note that queries are profiled in isolation, with no other load on the database when they are executed. 
+In this section, I use the Cypher command \texttt{PROFILE} to profile queries in isolation for randomly selected data. In isolation here means no other queries are concurrently being handled by the database.
 \\\\
 Through profiling, it became clear that Neo4J would cache recently executed query search results, and therefore repeating the same query would have a significantly reduced response time. 
 
 \subsubsection{Selecting random ID's to query}
-In order to prevent the Neo4J instance from performing some caching on the address, the database must have not seen the address in a query before. Therefore, to retrieve the addresses to use in the profiled commands, I used another instance of Neo4J on my local machine to collect the ID's to use. This will help better reflect the performance of the queries that will be executed for the users address searches when a cache hit will be highly unlikely. I executed the following query to retrieve the addresses to use: \texttt{MATCH(n:ADDRESS) RETURN n LIMIT 20} where 20 is how many ID's i would like to profile. 
+In order to prevent the Neo4J instance from performing some caching on the address, the database must have not seen the address in a query before. Therefore, to retrieve the addresses to use in the profiled commands, I used another instance of Neo4J on my local machine to collect the ID's to use. This will help better reflect the performance of the queries that will be executed for the users address searches when a cache hit will be highly unlikely. We executed the following query to retrieve the addresses to use: \texttt{MATCH(n:ADDRESS) RETURN n LIMIT 20} where 20 is how many ID's we would like to profile. 
 
-\subsubsection{Results}
-
-With the 20 ID's, I then profiled each of their MATCH queries with the query:
-\texttt{PROFILE MATCH(n: ADDRESS {address:'...'}) RETURN n}
+\subsubsection{Profiling Node Retrievals}
+We performed profiling for 20 randomly selected ID's for several types of nodes. For example, for profiling address nodes we used the Cypher query:
+\\\\
+\texttt{PROFILE MATCH(n: ADDRESS {address:'{address param}'}) RETURN n}
 
 \begin{center}
 \begin{tabular}{ |c|c| } 
@@ -95,7 +83,7 @@ With the 20 ID's, I then profiled each of their MATCH queries with the query:
 \hline \textbf{average} & \textbf{26.4 ms} \\\hline
 \end{tabular}
 \end{center}
-\\\\
+
 I performed the same profiling for each other type of entity that is retrieved as part of the functionality for the site. These other entities are shown below along with their average response times for 20 random ID's of each type. Each individual query response time is omitted for brevity. 
 \\\\
 \begin{center}
@@ -110,12 +98,10 @@ I performed the same profiling for each other type of entity that is retrieved a
 \hline
 \end{tabular}
 \end{center}
-\\\\
 The query profiling results show simple lookups all lay in the range of 9-30ms, which feels near instantaneous as a user waiting for a search result. There are slight differences notable between response times for address, transaction and output lookups compared to block and entity simply due to the differences in the size of the indexes that need to be searched; obviously the output index will be substantially larger than the block index as there will be substantially more outputs than blocks. 
 
 \subsubsection{Profiling Path Finding}\label{evaluation:path-finding-profile}
-The worst case performance for path finding is when an address does not exist between two nodes. 
-\todo{complete}
+We profile the underlying Cypher query used to implement the path finding feature. To do this, we select two random addresses $a1$, $a2$, similar to the previous section, and execute the query to find a path between $a1$ and $a2$. I select 10 pairs of random addresses and repeat the profiling 10 times. The results of this process are shown below. 
 
 \begin{center}
 \begin{tabular}{ |p{5.5cm}|p{5.5cm}| p{3cm} |} 
@@ -131,9 +117,10 @@ bc1qzzyh94k2r5m4fdx\-pa4yjnt8j8swjtkr49zt3gp & bc1qzzzelhfgx6tydat\-00khrpmrr75d
 bc1qzzz72vr3lvz3967\-fanykm4f6890u5gkqspw2pu & bc1qzzxvqvtga8trt0r\-064sn5sam2p89uy2hmffzug & 3291 \\\hline
 bc1qzzxmgns300890vj\-tvk6rty2weker8ejaythytc & bc1qzzzlnqktq3gtqfa\-jet24828x839em2a6my0ttx & 14924 \\\hline
 bc1qzzygmd9klrqce6q\-j0pfx2vzk763z8stq457zv5 & bc1qzzzagxs2f5dtk2u\-dx7q4zqc89n20hgzv5e0xw0 & 37134 \\
-\hline \textbf{average} & & \textbf{26.4 ms} \\\hline
+\hline \textbf{average} & & \textbf{48135.4 ms} \\\hline
 \end{tabular}
 \end{center}
+As shown from the table above, the average response times reported when profiling path finding queries are magnitudes greater than for individual nodes. 
 
 \subsection{Performance Under Load}\label{evaluation:performance-under-load}
 Below I evaluate the performance of requests sent to the back-end API created in \ref{section-backend-api}. Measuring single requests individually, with the database under no other load due to other user requests is not a realistic reflection of performance in a production environment. Therefore, I use Locust.io to simulate many users simultaneously using the tool and invoking requests to the API, and using Locust to measure statistics regarding latency and success/fail responses. 
@@ -384,4 +371,12 @@ Change address clustering
 \todo{drawback - only up to block 570k}
 
 only using one source for entity information 
+
+metrics for number of clicks etrc
+
+\todo{path finding correctness test}
+
+multi input is now a thing - https://ieeexplore.ieee.org/abstract/document/8260674
+
+evaluate using sarah micklejogn exampel 
 
