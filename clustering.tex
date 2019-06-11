@@ -1,8 +1,8 @@
-\section{Clustering : Multiple Input Heuristic}\label{section-clustering}
+\chapter{Clustering : Multiple Input Heuristic}\label{section-clustering}
 
 The multi-input transaction clustering heuristic as introduced in section \ref{background:multi-input-tx} and as described in the paper 'A fistful of bitcoins...' \cite{RefWorks:doc:5c3de7e3e4b0ea6196452d80} is one of the simpler, yet most effective clustering heuristics for Bitcoin. In this section, I present the several implementations of the clustering algorithm which uses the same input heuristic. I attempted clustering with many different approaches due to issues discovered while running each clustering algorithm. We also present the successful implementation in section \ref{clustering-raw-csv}.
 
-\subsection{Java Algorithm using Spring Data}
+\section{Java Algorithm using Spring Data}
 I implemented an algorithm which performed this clustering in Java; this used the Spring Data interface to the database to fetch all transactions in the database. For each transaction, it then fetches each input and the address each input is locked to. For those transactions with several inputs, each locked to a distinct address, each address is fetched and the set of addresses for the particular transaction are identified as a cluster and therefore under the control of the same user, using this heuristic. To represent this clustering in the database, every address in the cluster will be connected to every other address in the cluster, in a totally connected graph style, using a new relationship type \texttt{INPUT\_HERUISTIC\_LINKED\_ADDRESS}. 
 \\\\
 The result of running this clustering algorithm for a subset of the database (blocks 0-2000 only) can be seen in figure \ref{fig:neo4j-many-heuristic-1-clusters} and \ref{fig:neo4j-1-tx-heuristic-1-cluster}. 
@@ -22,7 +22,7 @@ The result of running this clustering algorithm for a subset of the database (bl
 \end{figure}
 
 
-\subsubsection{Challenges}
+\subsection{Challenges}
 
 I anticipated the first issue I encountered due to to the size of the dataset I am working with; I encountered a memory overflow error while the algorithm was attempting to load all transactions in Bitcoin into memory. 
 \\\\
@@ -88,7 +88,7 @@ public ResponseEntity clusterByInput() {
 }
 \end{lstlisting}
 
-\subsection{Cypher Query}
+\section{Cypher Query}
 I was able to translate the above algorithm in Listing \ref{lst:clustering-java} to a single Cypher query. The Cypher implementation is shown in Listing \ref{lst:clustering-cypher}.
 The query matches all transactions that have more than one input, then finds the addresses each input is locked to. It uses the \texttt{UNWIND} commands to generate all pairs of addresses in the address list for a particular transaction. The clause \texttt{WHERE id(first) \< id(second)} ensures a pair of addresses only occurs once; rather than two pairs existing for \{a,b\} and \{b,a\} where a and b are both addresses.
 
@@ -112,12 +112,12 @@ MATCH (:ADDRESS)-[r:INPUT_HEURISTIC_LINKED_ADDRESSES]-(:ADDRESS)
 DELETE r
 \end{lstlisting}
 
-\subsubsection{Performance Issues}
+\subsection{Performance Issues}
 When executing the query shown in Listing \ref{lst:clustering-cypher} I encountered performance issues where several hours would elapse with no apparent progress being made. I investigated this issue using the Cypher \texttt{PROFILE} command to inspect the performance of this query. The performance report identified issues in the earlier stages where the query would require the search of all nodes across the database when matching transactions, inputs and addresses. Since we want to match all nodes, rather than using a specific ID that can leverage fast index lookups, this leads to a significant bottleneck in the query. 
 \\\\
 Due to the nature of the query I was performing, there was no apparent way to resolve the performance issues with this query. It would simply need to match millions of nodes. Therefore, I investigated an alternative approach, of performing the clustering 'on the fly' as and when an address is requested from the UI. 
 
-\subsection{Clustering on demand}
+\section{Clustering on demand}
 By knowing exactly which address we want to perform the clustering for, and leveraging the performance enhancements provided by indexes on address, transactions and outputs when fetching them using their respective ID's, I was able to craft an algorithm to efficiently implement clustering on demand.
 \\\\
 This implementation heavily relied on Java 8 streams, specifically using parallel streams to take advantage of parallelizability in the tasks to be performed, increasing the efficiency of this operation; critical for an on-demand process. 
@@ -176,7 +176,7 @@ private Stream<Address> getAddressesLinkedByTransaction(Transaction transaction,
 }
 \end{lstlisting}
 
-\subsubsection{Correctness}
+\subsection{Correctness}
 
 
 I can verify the correctness of clustering by immediate neighbours by searching for a transaction known to have several inputs locked to distinct addresses. For example, I was able to verify the correctness of clustering with immediate neighbours using address \texttt{17jkFTQuYaGssazzqZ6CTHgRVQYRgLmf34}. This address inputs transaction \\\texttt{8897ea9ceaf18a546cdc513b9179bae31a462ee5bf47818eb7ba909082d11777}, and also has inputs from 9 other distinct addresses. The clustering algorithm then produces a cluster of 10 addresses that are considered to be controlled by the same user. 
@@ -195,18 +195,18 @@ I was able to verify that executing the clustering algorithm included all 3 of t
   \label{fig:neo4j-transitive-clustering-screenshot}
 \end{figure}
 
-\subsubsection{Drawbacks \& Compromises}
+\subsection{Drawbacks \& Compromises}
 On-demand clustering begins to become unsuitable for extremely large clusters; for example, an address belonging to the wallet of SatoshiDice.com \\\texttt{1LaM2aDLEP49kLbE6y2hvnbrP3agbMwEHb} would belong to an extremely large cluster of many thousands of addresses, and clustering on-demand would simply take far too long to provide an acceptable user experience (I experimented with the above address and killed the request after 30 minutes had elapsed). For addresses belonging to large wallets like the one above, I attempt to cluster using the entity tagging information obtained in section \ref{section-entity-tagging} rather than using the multi-input heuristic.
 Since this data is stored in the database, it is quick to traverse the \texttt{HAS\_ENTITY} relationships from a known address to find all of the addresses in the cluster. Therefore, I prioritise providing entity clustering information over input clustering in order to provide as much valuable information over a shorter time; improving user experience. \\\\
 For those addresses that do not have a link with a known entity, but exist as part of large address clusters, I constrain the search for linked addresses. After finding a specified number of linked addresses, the search for further addresses will complete and return a subset of the cluster to the user. The limit is configurable on the search form and the user has the ability to disable the limit in order to find the complete result, but with the warning that it could be a time-consuming operation. I feel this was a suitable compromise to make in order to provide the clustering functionality while also maintaining good user experience. 
 
 
-\subsection{Clustering using raw CSV data}\label{clustering-raw-csv}
+\section{Clustering using raw CSV data}\label{clustering-raw-csv}
 Due to the challenges experienced in the earlier approaches, where clustering relations were added once the Neo4J database had already been populated and hence was, a different approach was required where the clustering would be performed by generating new CSV relations to be used in the bulk import described in section \ref{section-blockchain-import}. 
 \\\\
 If the clustered addresses could be represented as relationships in the graph, where each address will be a neighbour of each address in its cluster, it will be efficient to query the database for addresses in the same cluster of a particular addres;  Neo4J is designed to traverse large number of relationships extremely quickly. This approach was attempted in the first two implementations documented in this section, however these approaches had the constraint of the transnational layer above the database causing the clustering algorithm to be very slow. By working with raw CSV data, we are able to circumvent this issue and leverage the powerful Neo4J Import tool used to populate the database [see section \ref{section-blockchain-import}] to include these relationships in the initial import. 
 
-\subsubsection{Approach}
+\subsection{Approach}
 The idea of this approach is to generate a CSV file for the relationships representing addresses that should be clustered together. Each entry in the CSV file will have the format \texttt{ADDRESS\_IN\_CLUSTER, ANOTHER\_ADDRESS\_IN\_CLUSTER, INPUTS\_SAME\_TX} where \texttt{ADDRESS\_IN\_CLUSTER} and \texttt{ANOTHER\_ADDRESS\_IN\_CLUSTER} are two Bitcoin addresses and \texttt{INPUTS\_SAME\_TX} is the name of the relationship. 
 \\\\
 The outline of the algorithm is as follows:

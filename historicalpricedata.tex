@@ -1,18 +1,18 @@
-\section{Fetching Historical Price Data}\label{section-price-data}
+\chapter{Fetching Historical Price Data}\label{section-price-data}
 Users of the tool should be able to view the value of transactions at the time they took place, in a number of fiat currencies (such as GBP, USD and EUR). In order to achieve this functionality, the historical price index for Bitcoin must be collected and stored for the entire time spanning from the infancy of Bitcoin to the present day. This objective is to therefore collect the historical exchange rates for every block from height 0 to 570,000, and to then to then store the various exchange rates as metadata with each block. 
 
-\subsection{Collecting the price data}
+\section{Collecting the price data}
 Fortunately, CoinDesk have an API providing the historical Bitcoin price index data from late July 2010 onwards \cite{RefWorks:doc:5cacd8cbe4b092e311880f2b}. The API can fetch the daily price index for each day in a provided date range, with conversions into the desired fiat currency. 
 
-\subsection{Storing the price data}
+\section{Storing the price data}
 Since the historical price data retrieved from CoinDesk is at the granularity of one data point per day, and a block in bitcoin mined approximately every 10 minutes, it would be appropriate for the price data to be stored with each block in the database. Storing the data with each transaction output would not provide any additional value, and would lead us to encounter a greater storage overhead and computational resource in associating the price data with every transaction output in Bitcoin. Since each output is associated with a transaction as an output (the \texttt{OUTPUT} relationship), and each transaction associated with the block it was mined in (the \texttt{MINED\_IN} relationship), we can easily find the price index data for an output in just a couple of hops. 
 \\\\
 The price index data for each block can therefore be fetched using the CoinDesk API and added to the CSV file containing all blocks.
 
-\subsection{Implementing historical price collector}
+\section{Implementing historical price collector}
 Using Python3, I created a program to accept CSV file names as input (or a regex for matching files), read through each line of the CSV (representing a single block) and write a new output line with each row (block) augmented with the price data at the time the block was mined in GBP, USD and EUR. 
 \\\\
 Since at the time of writing, the current Bitcoin block height was $>$ 570,000, and it would not be ideal to make a price index request for each block, 3 times over for each currency. Therefore, the program first checks a local cache to see if the price data is already available for a particular date. If not, it performs a fetch which collects the data for that date and the following 300 days and populates the cache. We therefore reduce the total number of requests made, and the overhead associated with making each request, while also avoid making the request excessively large by collecting data for a much greater date range. For example, fetching 1000 days would lead to less requests being made for blocks covering several years, but an unnecessary overhead when fetching data for blocks covering only 100 days.
 
-\subsection{Storing the price data}
+\section{Storing the price data}
 Once the price data for each currency existed for each block, each block entry could be augmented with the historical Bitcoin to fiat currency conversion rate at the time the block was mined. This data would then be included in the bulk import to Neo4J. When requesting transactions from the database, it would then be trivial to find the block they were included in to find the most accurate historical exchange rate for that particular transaction. 

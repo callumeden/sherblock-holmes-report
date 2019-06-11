@@ -1,7 +1,7 @@
-\section{Blockchain Download}\label{section-blockchain-download}
+\chapter{Blockchain Download}\label{section-blockchain-download}
 This section will cover the objective of downloading historical Bitcoin Blockchain data. The goal of this objective is to have the historical Bitcoin Blockchain in a format that can be used to populate a database. I performed the historical download to block height 570,000 - mined on the 3rd April 2019. 
 
-\subsection{Hardware}\label{satoshi-specs}
+\section{Hardware}\label{satoshi-specs}
 I had access to a VM on a machine provided by the Department of Computing at Imperial.  My VM has the following resource allocated to it:
 \begin{itemize}
     \item \textbf{Processor}: 16 of 24 cores, AMD EPYC 7401
@@ -9,7 +9,7 @@ I had access to a VM on a machine provided by the Department of Computing at Imp
     \item \textbf{Storage}: $\sim$5TB SSD Free
 \end{itemize}
 
-\subsection{Downloading the Bitcoin Blockchain}
+\section{Downloading the Bitcoin Blockchain}
 I took the approach of extending the contribution of Max Baylis' Health Monitoring project [see \ref{background-max-baylist-project}]. Max's approach uses WebFlux to create parallel streams of data fetched using RPC and writes it to MongoDB; I adapted this work to divert the data into a CSV format suitable for importing into Neo4J. The steps below describe the steps taken to successfully build CSV files for the entire Bitcoin Blockchain. 
 
 \begin{itemize}
@@ -28,21 +28,24 @@ I took the approach of extending the contribution of Max Baylis' Health Monitori
   \label{fig:neo4j-layout}
 \end{figure}
 
-\subsection{Challenges \& Solutions:}
-\subsubsection{Efficiency}
+\section{Challenges \& Solutions:}
+\subsection{Efficiency}
 With multiple cores at my disposal, it would only be logical to try and distribute the workload across the cores. Fortunately, WebFlux conveniently provides functionality to do this; by adding \texttt{.parallel(n)} to my Flux stream, the workload is divided up into \texttt{n} rails. Then subsequently applying the \texttt{.runOn(Schedulers.parallel())} mapping, WebFlux is told to parallelise this work by running each rail on a separate core. 
-\subsubsection{Job failure mitigation}
+\subsection{Job failure mitigation}
 When an error from the client is received, possibly due to being overwhelmed with requests, it would be far from ideal for a single failure to cause the entire job to fail. Therefore I mitigated job failure by adding retry logic when requesting using the Reactive Client, so that failures will be handled by re-trying with a delay (the delay necessary to allow time for producer recovery in the case of being overwhelmed). Additionally, if an unexpected error occurs that I have not anticipated, the entire job may fail. Therefore, when performing the download, I ensured to do so in incremental batches. E.g I first download data for blocks 0-100,000 then 100,001-200,000 and so on. Therefore, if a failure does occur, progress from other blocks has been saved from previously successful runs and only the batch which failed needs to be re-run. 
 
-\subsubsection{Writing concurrently from several threads}
+\subsection{Writing concurrently from several threads}
 Although the above parallelisation improves the efficiency of the overall download process, it introduced the problem of multiple threads writing to a single CSV file concurrently, which led to data in the CSV files being malformed where threads have written data chunks in an interleaving fashion. 
-\\\\
-\textbf{Fix interleaving writes with a lock:} Clearly each line in the file needs to be written atomically, so I introduced a lock that each thread must hold in order to perform a write to a CSV file. However, I quickly realised that this will create a significant bottleneck in the workflow and developed an alternative solution.
-\\\\
-\textbf{Fix interleaving writes with per thread files:} To enable parallel file writing and prevent the bottleneck of acquiring locks, I created a CSV file writer for each thread, for each data type. For example, the CSV file containing the block nodes will be named \texttt{block-data-thread-1.csv}, \texttt{block-data-thread-2.csv} and \texttt{block-data-thread-3.csv} etc. With this solution, each write can occur without risk of another thread also attempting to write, so the overhead of acquiring a lock for concurrent access is now redundant. \todo{Compare runs with and without}
 
-\subsubsection{Duplicate Addresses}
+\subsubsection{Fix interleaving writes with a lock} 
+Clearly each line in the file needs to be written atomically, so I introduced a lock that each thread must hold in order to perform a write to a CSV file. However, I quickly realised that this will create a significant bottleneck in the workflow and developed an alternative solution.
+
+\subsubsection{Fix interleaving writes with per thread files} 
+To enable parallel file writing and prevent the bottleneck of acquiring locks, I created a CSV file writer for each thread, for each data type. For example, the CSV file containing the block nodes will be named \texttt{block-data-thread-1.csv}, \texttt{block-data-thread-2.csv} and \texttt{block-data-thread-3.csv} etc. With this solution, each write can occur without risk of another thread also attempting to write, so the overhead of acquiring a lock for concurrent access is now redundant. 
+
+\subsection{Duplicate Addresses}
 While generating the CSV files, we fetch the outputs of a transaction an the addresses each output is locked to. Since while generating the CSV, there was no way of efficiently checking if we had already seen an address before, we simply had to write every address we see to the CSV file. When running the Neo4J bulk import job, we encounter an error as we attempt to define an address node twice. A solution considered was to use a flag \texttt{--ignore-duplicate-nodes} that can be used when invoking the bulk import tool. This would simply ignore any address nodes that have already been defined, solving our problem. However, as TokenAnalyst found in their work \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, the \texttt{--ignore-duplicate-nodes} flag massively slows down the import process, as Neo4J needs to check every single node to see if the one its adding already exists. Their solution, which I adopted, was to use GNU's \texttt{sort - u} command, which allows us to generate a new address CSV file with only the unique addresses. TokenAnalyst found this process to take around 30 minutes \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}, and is therefore a good investment in speeding up the entire import process. 
 
-\subsubsection{Result}
+
+\subsection{Result}
 All Bitcoin Blockchain data was able to be downloaded, parsed and written as CSV files across a 12 hour period up to block 570,000. Due to the process of human intervention in my approach, in order to mitigate the effects of a job failing as described above, the download was not continuous and there were idle times between jobs finishing and the next being started. Additionally, manual intervention was required post-download in order to augment the Bitcoin data with price information and entity relationships, as described in section \ref{section-price-data} and section \ref{section-entity-tagging} respectively. 

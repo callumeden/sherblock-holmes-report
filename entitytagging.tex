@@ -1,21 +1,23 @@
-\section{Tagging Addresses as Known Entities}\label{section-entity-tagging}
+\chapter{Entity Tagging}\label{section-entity-tagging}
 As discussed in background section \ref{background-tag-collection}, it is possible to associate public addresses with known entities, such as exchanges, pools and services. walletexplorer.com hosts a wealth of data mapping entities (e.g exchanges, pools, services etc) to the public addresses they are known to operate under \cite{RefWorks:doc:5c4b26f3e4b0ea619646d513}. This objective is to therefore collect address tagging information from walletexplorer.com and to associate it with the historical Bitcoin Blockchain data I have previously collected.
 
-\subsection{Fetching the data}\label{design:fetch-entity-data}
+\section{Fetching the data}\label{design:fetch-entity-data}
 Walletexplorer.com does not provide functionality for users to download the data they serve. The data can only be viewed by navigating to each wallet, then their addresses, then through a series of paginated tables providing the addresses for that entity.
 \\\\
 My solution to this problem was to build a web scraping application which navigates the site and builds a mapping for each wallet (entity) to all of it's addresses, which can then be written to some output file for mapping against my stored bitcoin data at a later stage. 
 
-\subsubsection{Building the scraper}
+\subsection{Building the scraper}
 I used a popular open-source web-scraping framework scrapy for building my scraper application. I simply generate a new 'spider' for my scraping operation by extending the frameworks 'CrawlSpider' class. In this class, I define the bounds of the crawl, and methods to parse and extract the data on each page it visits. For example, I created rules to allow the cralwler to navigate to links with 'addresses' in the URL and then defined how to extract the wallet name,  each of the addresses from the table and how to follow links to paginate the table in order to view all addresses for that wallet. 
 \\\\
 However, when I ran my scraper application, I continuously received 403 (Forbidden) error responses for the majority of my requests.  Through investigation, I discovered the likely cause of this was due to anti-scraping measures many websites employ. In order to circumvent these anti-scraping measures, I experimented with a number of approaches recommended by scrapys documentation titled 'Avoid getting banned'; these included rotating user agents, disabling cookies, use download delays or use a pool of rotating IP's. 
-\\\\
-\textbf{Implementing delays:} This approach worked; I was able to visit many pages without being served a 403 response as before, however this took a very long time. A delay of more than 2 seconds was required to enable to delay solution to work; this would therefore take an infeasible amount of time to scrape the thousands of pages containing the required data on the walletexplorer site. 
-\\\\
-\textbf{Using rotating proxies:} I integrated into my scraper project scrapoxy which allows me to hide my scraper behind a cloud provider (in this isntance AWS). Scrapoxy creates a pool of proxies and routes all requests through the pool of proxies. I configued scrapoxy to use my personal Amazon EC2 account, and was able to scale up to 20 EC2 instances when performing the scraping (to enable greater concurrency, but limited at 20 because my account is restricted to 20 instances).  Through trial and error, I was also able to configure the number of concurrent requests per proxy to 5, which further maximises concurrency without encountering errors due to anti-scraping measures. 
 
-\subsection{Results}
+\subsubsection{Implementing delays} 
+This approach worked; I was able to visit many pages without being served a 403 response as before, however this took a very long time. A delay of more than 2 seconds was required to enable to delay solution to work; this would therefore take an infeasible amount of time to scrape the thousands of pages containing the required data on the walletexplorer site. 
+
+\subsubsection{Using rotating proxies}
+I integrated into my scraper project scrapoxy which allows me to hide my scraper behind a cloud provider (in this isntance AWS). Scrapoxy creates a pool of proxies and routes all requests through the pool of proxies. I configued scrapoxy to use my personal Amazon EC2 account, and was able to scale up to 20 EC2 instances when performing the scraping (to enable greater concurrency, but limited at 20 because my account is restricted to 20 instances).  Through trial and error, I was also able to configure the number of concurrent requests per proxy to 5, which further maximises concurrency without encountering errors due to anti-scraping measures. 
+
+\section{Results}
 Using 20 EC2 instances, the scrape completed on 14-04-2019 at 10:07:42 successfully after 1 day, 19 hours and 12 minutes and received 240,411 HTTP responses. This amounted to generating a 920MB data file containing entity to address mappings. Due to the wallet addresses existing over several pages and the asynchronous nature of scraping each page, a wallet may have many entries in the output file JSON. For example, the resulting format will be:
 
 \begin{lstlisting}
@@ -36,7 +38,7 @@ whereas we would like the desired format to be of the format:
 \end{lstlisting}
 Thankfully the size of the input file was still small enough to load into memory, making this transformation simpler. I created a simple script which iterated through the input file and generated a new dictionary containing wallet names as unique keys and concatenated lists of addresses from each entry matching the wallet name. I then wrote this out to in JSON format to a new file. 
 
-\subsection{Performing the address matching}\label{address-matching-trie}
+\section{Performing the address matching}\label{address-matching-trie}
 From step \ref{design:fetch-entity-data} we have a JSON mapping each entity type to a list of addresses. From importing the Bitcoin Blockchain into CSV format, and de-duplicating addresses, we have a CSV containing all distinct addresses to have ever been seen on the chain. I now have the task of creating a new \texttt{HAS\_ENTITY} relationship for each address in the CSV that occurs in the entity mapping JSON file. If I were to take a naive approach here, where I would compare each address from the blockchain against each address I have a mapping for, I would have an algorithm which performs $\mathcal{O}(nm)$ address matches, where $n$ is the number of addresses found on the blockchain and $m$ the number of addresses I have an entity mapping for. 
 \\\\
 A better approach would be to use a Trie data structure. The Trie data structure will be a more efficient method of storing the entity mapping address data since it only need to store once the inevitable common prefix's of the millions of addresses. The primary benefit, though, is for performing the address matching. For each address in the blockchain, we only need to walk at most the height of the tree once, so we only require $\mathcal{O}(n)$ address matches. I was able to simply implement this approach using Tries by using Google's pygtrie library. 

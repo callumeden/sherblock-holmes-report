@@ -1,19 +1,19 @@
-\section{Database Population}\label{section-blockchain-import}
+\chapter{Database Population}\label{section-blockchain-import}
 The next stage of the project following downloading the historical Bitcoin Blockchain data and storing it in CSV files is to use this data to populate a Neo4J graph database. 
 
-\subsection{Why Neo4J?}
+\section{Why Neo4J?}
 Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. Neo4J is an open-source, NoSQL graph-database providing ACID compliant transactions.
 
-\subsubsection{Bulk Import Tool}
+\subsection{Bulk Import Tool}
 Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
 \\\\ 
 The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is periodicc commit' which allows the transaction state to be intermittently committed to storage, and the memory Neo4J is using to hold this state to be flushed. 
 \\\\
 The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
 
-\subsection{Database Design}
+\section{Database Design}
 
-\subsubsection{Data Nodes}
+\subsection{Data Nodes}
 \begin{itemize}
     \item \texttt{BLOCK} : A Bitcoin block, unique id being the block hash. 
     \item \texttt{TRANSACTION} : A Bitcoin transaction, unique id the txid property.
@@ -23,7 +23,7 @@ The import tool is designed to take advantage of the hardware at it's disposal; 
     \item \texttt{ENTITY }: A known entity as collected from walletexplorer.com in section \ref{section-entity-tagging}. 
 \end{itemize}
 
-\subsubsection{Relationships}
+\subsection{Relationships}
 I created several types of relationships to exist between nodes in Neo4J. The relationships can be seen in a visual representation below in figure \ref{fig:neo4j-layout}.
 \begin{itemize}
     \item \texttt{CHAINED\_FROM} Exists between two blocks; represents the relationship between a block and it's parent block. 
@@ -49,7 +49,7 @@ I created several types of relationships to exist between nodes in Neo4J. The re
   \label{fig:neo4j-has-entity}
 \end{figure}
 
-\subsection{Invoking the import job}
+\section{Invoking the import job}
 I created a script to wrap the execution of the import job, providing the benefits of version control and reproducibility. This script first uses globbing to build the list of input files for each type of node and relationship. It then invokes the import command as shown below. Some additional arguments were \texttt{--max-memory} to override the default 90\% memory usage to use slightly more. The argument \texttt{--ignore-missing-nodes} was to prevent a long job failing simply due to a single relationship referring to a non existing node, and to rely on these bad relationships being reported to the file as defined by the \texttt{--report-file} option for manual investigation. 
 \\\\
 \begin{lstlisting}[language=Bash]
@@ -71,14 +71,14 @@ $1/bin/neo4j-admin import
   --report-file "neo4j-import-debug-report.log" 
 \end{lstlisting}
 
-\subsection{Challenges \& Solutions}\label{neo4j-challenges}
-\subsubsection{Memory Issues}
+\section{Challenges \& Solutions}\label{neo4j-challenges}
+\subsection{Memory Issues}
 While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. The total amount of memory available (including swap) increased to over 30GB. This allowed the import tool to progress using swap once memory had been exhausted, albeit with increased memory access latency.
 
-\subsubsection{Query Latency Issues} 
+\subsection{Query Latency Issues} 
 Upon successful population of the database, I performed simple entity lookups to begin to evaluate the correctness and performance of the database. However, I discovered immediately that simple searches for an address node using the tool takes an unacceptably long time (10 minutes 45 to find an Address node by its address and find its immediate neighbours). I used indexing to solve this issue. 
 
-\subsubsection{Creating indexes}
+\subsection{Creating indexes}
 Index's are useful for finding the starting point of a graph traversal. My tool requires exactly this functionality when we search for an address as the starting point of an investigation, before expanding out neighbours to traverse the blockchain. The initial search for the address is where the latency currently exists, therefore the first index I created was on the \texttt{address} property of the \texttt{ADDRESS} node. I was able to create this index by simply executing the command \texttt{CREATE INDEX ON :ADDRESS(address)} and using the command \texttt{CALL db.indexes} to track the progress of its population. 
 \\\\
 Once the index was created, the search for an address returned almost immediately. However, when trying to expand the relations of the address neighbours (non-address nodes) I encountered the same performance issues. I therefore had to create index's for the each node type using the unique ID that each node will be fetched with. The complete set of indexes created are:
@@ -90,5 +90,5 @@ Once the index was created, the search for an address returned almost immediatel
     \item \texttt{:TRANSACTION(transactionId)}
 \end{itemize}
 
-\subsection{Import Result}
+\section{Import Result}
 The import operation for the first 570,000 Bitcoin Blocks completed in 5 hours, 32 minutes and 54 seconds. The operation consumed 22.96GB of memory and created 1.964 billion nodes, 3.52 billion relationships and 3.03 billion properties. There were no errors or bad relationships reported. 

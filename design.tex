@@ -12,34 +12,6 @@ Technical objectives I aim to acheive
 \end{enumerate}
 \section{}
 
-\subsection{Multiple addresses input one transaction}
-If two or more addressers are used as inputs to the same transaction, they are considered to be controlled by the same user. 
-\subsubsection{Implementation}
-This heuristic is quite simple; every transaction on the blockchain must be iterated over. I first check the transaction has multiple inputs and then then fetch the inputs for each transaction, and which addresses they are locked to. These addresses are used to build a set of addresses to be linked; a new relationship is created between each of the addresses which links them using this heuristic. This creates a complete graph between all of the addresses that provide inputs to the transaction; the updated address nodes are then saved to the Neo4J database. 
-
-\subsubsection{Results}
-I first experimented with my implementation on a subset of the blockchain running in a local instance of Neo4J on my personal machine. I was able to validate the correctness of the clustering using this heuristic without performing any potentially incorrect mutations to the real database holding the entire blockchain, which could be an expensive error to put correct. 
-
-
-
-
-
-\subsubsection{Efficiency}
-Has to be serialisable: race condition when updating an address. An address could be the input for several transactions. There is therefore potential for interleaving address fetching, updating and saving leading to an incorrect state for an addresses links.  \todo{incomplete}
-
-\subsection{Designing the change address heuristic}
-\textbf{The idea:} This heuristic is based on an idiom of use in Bitcoin. When bitcoins from an output are spent in a transaction, they must be spent all at once, with the only way of dividing them up being through the use of a change address, where the excess input from the transaction is sent to a new address under the control of the sender \todo{Cite fistful}.
-
-\textbf{Assumptions:} A change address only has \textbf{one} input. \\\\
-\textbf{Robustness:} 
-For each transaction, if multiple outputs meet the pattern of a change address, no address is labelled as the change address. A change address is labelled iff exactly one output meets the pattern. 
-\begin{itemize}
-    \item Avoid self-change addresses, where the change address is specified as the input address. 
-    \item The address does not appear in any other transaction.
-    \item The transaction is not a coin generation transaction. 
-    \item All other output addresses have appeared in previous transactions.
-\end{itemize}
-
 
 
 
