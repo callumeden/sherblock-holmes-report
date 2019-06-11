@@ -1,17 +1,23 @@
 \chapter{Database Population}\label{section-blockchain-import}
-The next stage of the project following downloading the historical Bitcoin Blockchain data and storing it in CSV files is to use this data to populate a Neo4J graph database. 
+We now use the data retrieved for all historical Bitcoin transactions in section \ref{section-blockchain-download} and the augmented datasets developed in sections \ref{section-price-data} and \ref{section-entity-tagging} and import them into a Neo4J database using the Neo4J Bulk Import tool.
 
 \section{Why Neo4J?}
 Graph DB's provide efficient traversing of nodes; allowing million of connections to be traversed per second per core \cite{RefWorks:doc:5c98f0c6e4b00cbb4da393d8}. Scaling independently to the size of the data-set, a graph database is excellently suited for storing the vast, complex data-set constituting the Bitcoin Blockchain. Neo4J is an open-source, NoSQL graph-database providing ACID compliant transactions.
 
+\subsection{Other DB Solutions}
+It was very clear from the outset that a graph database would be required; it very clearly fitted the problem of needing to traverse many relationships quickly. Since we are working with such a large dataset, we must pre-empt performance issues of searching for data in a huge database. In graph databases, performance stays almost constant as the size of the data set grows.
+\\\\
+Flexibility was also an important feature; it would be necessary to easily adapt data over time, such as introducing a new clustering heuristic or adding a max address balance data entry; graph databases provide flexibility to adapt the data structure far easier than in traditional relational databases. Additionally, since the investigation tool we were building would display data in a graphical format, it made a lot of sense to store the data itself as a graph. 
+\\\\
+Other (free) graph DB technologies include Orient DB, Graph Engine, GraphDB Lite, Titan, and MapGraph. Neo4J was selected due to our personal familiarity with the technology, its large support community and due to the graph persisting data to disk, unlike some other technologies that are in-memory based solutions which would not be possible due to the size of our dataset. 
+
 \subsection{Bulk Import Tool}
 Neo4J provides functionality for bulk importing data \cite{RefWorks:doc:5c6ab610e4b02c4a19ae3ed1}. A Neo4J blog describes an example use of this functionality: importing a  vast 66GB dataset from Stackoverflow into a new Neo4J database \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}; however, this is less than a third the size of the Bitcoin blockchain (approximately 197GB at the beginning of January 2019 \cite{RefWorks:doc:5c6ab1a3e4b05e3aaec0ffc8}).
 \\\\ 
-The Stackoverflow import example shows usage of Cypher features for improving the efficiency of bulk imports, such as 'constraints', 'indexes', 'distinct'  in order to make the import more efficient. Another useful feature is periodicc commit' which allows the transaction state to be intermittently committed to storage, and the memory Neo4J is using to hold this state to be flushed. 
-\\\\
-The import tool is designed to take advantage of the hardware at it's disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. The Stackoverflow import took just over 3 minutes to complete \cite{RefWorks:doc:5c6ab2bae4b08c9b85da964f}. 
+The import tool is designed to take advantage of the hardware at its disposal; ideal for our use-case where we have a large amount of SSD and processing power available, and we simply need to ensure we can take full advantage of it. 
 
 \section{Database Design}
+The graph Database will consist of 'nodes' which will store each data entry and relationships which exist between nodes, which describe the relations between the data. 
 
 \subsection{Data Nodes}
 \begin{itemize}
@@ -24,14 +30,14 @@ The import tool is designed to take advantage of the hardware at it's disposal; 
 \end{itemize}
 
 \subsection{Relationships}
-I created several types of relationships to exist between nodes in Neo4J. The relationships can be seen in a visual representation below in figure \ref{fig:neo4j-layout}.
+We created several types of relationships to exist between nodes in Neo4J. The relationships can be seen in a visual representation below in figure \ref{fig:neo4j-layout}.
 \begin{itemize}
     \item \texttt{CHAINED\_FROM} Exists between two blocks; represents the relationship between a block and it's parent block. 
-    \item \texttt{MINED\_IN} Exists beween a transaction and a block. Represents the relationship between a transaction and the block it was mined in. 
+    \item \texttt{MINED\_IN} Exists between a transaction and a block. Represents the relationship between a transaction and the block it was mined in. 
     \item \texttt{LOCKED\_TO} Exists between a transaction output and an address. Represents the relationship between an output, and who it can be spent by. 
     \item \texttt{INPUTS} Exists between a transaction output and a transaction. Describes the relationship between an output and the transaction it later funds. 
     \item \texttt{OUTPUTS} Exists between a transaction and a transaction output. Shows the relationship between a transaction and the new outputs it generates. 
-    \item \texttt{COINBASE} Exists between a Coinbase node and a block. Represents the special type of input to a transaction which generates new bitcoin, and is associated with a block as it was the miners reward for successfully mining the block. 
+    \item \texttt{COINBASE} Exists between a Coinbase node and a block. Represents the special type of input to a transaction which generates new bitcoin, and is associated with a block as it was the miners' reward for successfully mining the block. 
     \item \texttt{HAS\_ENTITY} Exists between entities and the addresses they are known to control (see fig \ref{fig:neo4j-has-entity}).
 \end{itemize}
 
@@ -50,8 +56,8 @@ I created several types of relationships to exist between nodes in Neo4J. The re
 \end{figure}
 
 \section{Invoking the import job}
-I created a script to wrap the execution of the import job, providing the benefits of version control and reproducibility. This script first uses globbing to build the list of input files for each type of node and relationship. It then invokes the import command as shown below. Some additional arguments were \texttt{--max-memory} to override the default 90\% memory usage to use slightly more. The argument \texttt{--ignore-missing-nodes} was to prevent a long job failing simply due to a single relationship referring to a non existing node, and to rely on these bad relationships being reported to the file as defined by the \texttt{--report-file} option for manual investigation. 
-\\\\
+We created a script to wrap the execution of the import job, providing the ability to version control the script and to ensure reproducibility of the import process. This script first uses globbing to build the list of input files for each type of node and relationship. It then invokes the import command as shown below. Some additional arguments were \texttt{--max-memory} to override the default 90\% memory usage to use slightly more. The argument \texttt{--ignore-missing-nodes} was to prevent a long job failing simply due to a single relationship referring to a non-existing node, and to instead rely on these bad relationships being reported to the file as defined by the \texttt{--report-file} option for manual investigation. 
+
 \begin{lstlisting}[language=Bash]
 $1/bin/neo4j-admin import 
   --nodes:ADDRESS $address_files_all
@@ -73,15 +79,15 @@ $1/bin/neo4j-admin import
 
 \section{Challenges \& Solutions}\label{neo4j-challenges}
 \subsection{Memory Issues}
-While attempting to perform the bulk import, I encountered an issue where the import job would fail with no output other than message that the process was killed. This occurred deterministic at around 28\% progress into the graph node creation process. After investigation, I found that this issue was being caused by Neo4J running out of available memory; I rectified this by partitioning a much larger amount of Swap memory for the VM. The total amount of memory available (including swap) increased to over 30GB. This allowed the import tool to progress using swap once memory had been exhausted, albeit with increased memory access latency.
+While attempting to perform the bulk import, we encountered an issue where the import job would fail with no output other than the message that the process was killed. This occurred on repeated runs at around 28\% progress into the graph node creation process. After investigation, we found that this issue was being caused by Neo4J running out of available memory; we rectified this by allocating a much larger amount of Swap memory for the VM. The total amount of memory available (including swap) increased to over 30GB. This allowed the import tool to progress using swap once memory had been exhausted, albeit with increased memory access latency.
 
 \subsection{Query Latency Issues} 
-Upon successful population of the database, I performed simple entity lookups to begin to evaluate the correctness and performance of the database. However, I discovered immediately that simple searches for an address node using the tool takes an unacceptably long time (10 minutes 45 to find an Address node by its address and find its immediate neighbours). I used indexing to solve this issue. 
+Upon a successful population of the database, we performed simple entity lookups to begin to verify the correctness and performance of the database. However, we discovered immediately that simple searches for an address node using the tool takes an unacceptably long time (10 minutes 45 to find an Address node by its address and find its immediate neighbours). We used indexing to solve this issue. 
 
 \subsection{Creating indexes}
-Index's are useful for finding the starting point of a graph traversal. My tool requires exactly this functionality when we search for an address as the starting point of an investigation, before expanding out neighbours to traverse the blockchain. The initial search for the address is where the latency currently exists, therefore the first index I created was on the \texttt{address} property of the \texttt{ADDRESS} node. I was able to create this index by simply executing the command \texttt{CREATE INDEX ON :ADDRESS(address)} and using the command \texttt{CALL db.indexes} to track the progress of its population. 
+Indexes are useful for finding the starting point of graph traversal. My tool requires exactly this functionality when we use an address as the starting point of an investigation, before expanding out neighbours to traverse the blockchain. The initial search for an address node is where the latency currently exists, therefore the first index we created was on the \texttt{address} property of the \texttt{ADDRESS} node. We create this index by simply executing the command \texttt{CREATE INDEX ON :ADDRESS(address)} and using the command \texttt{CALL db.indexes} to track the progress of its population. 
 \\\\
-Once the index was created, the search for an address returned almost immediately. However, when trying to expand the relations of the address neighbours (non-address nodes) I encountered the same performance issues. I therefore had to create index's for the each node type using the unique ID that each node will be fetched with. The complete set of indexes created are:
+Once the index was created, the result for an address node search returned almost immediately. However, when trying to find the relations of the address neighbours (including non-address nodes) we encountered the same performance issues. Therefore, we created index's for each node type using the unique ID that each node will be fetched with. The complete set of indexes created are:
 \begin{itemize}
     \item \texttt{:ADDRESS(address)}
     \item \texttt{:BLOCK(hash)}
