@@ -380,3 +380,22 @@ multi input is now a thing - https://ieeexplore.ieee.org/abstract/document/82606
 
 evaluate using sarah micklejogn exampel 
 
+
+
+\subsection{Clustering Correctness}
+
+We can verify the correctness of clustering by immediate neighbours by searching for a transaction known to have several inputs locked to distinct addresses. For example, we were able to verify the correctness of clustering with immediate neighbours using address \texttt{17jkFTQuYaGssazzqZ6CTHgRVQYRgLmf34}. This address inputs transaction \\\texttt{8897ea9ceaf18a546cdc513b9179bae31a462ee5bf47818eb7ba909082d11777}, and also has inputs from 9 other distinct addresses. The clustering algorithm then produces a cluster of 10 addresses that are considered to be controlled by the same user. 
+\\\\
+I now verify the transitive clustering behaviour of the algorithm.  
+To achieve this, I mutated my local Neo4J database containing a subset of the Bitcoin Blockchain (only blocks 0-2000). 
+\\\\
+I manually located an instance of addresses that can be clustered transitively using this heurisitc. The visual representation of the connections existing between two transitively linked addresses can be seen in figure \ref{fig:neo4j-transitive-clustering-screenshot}. The 3 addresses in this screenshot (in green) are \texttt{15oUEZFKAC8E8BTLt1s1jx4fPxumwB3ecr}, \texttt{17iqXQcGfjjHSsJK993mu75sPBnLFSEp8F} and \texttt{1Js6Nx1822qSjETsnp2kkhQFwmRNRWxgak}. They are linked through two transactions (in blue) \texttt{04dc7226529763e8c15d58171d1ac1e28cb6b8d3165005765e65757c7b219d2d} and \texttt{c7a4bb767027a4382462c32b6a824a53e2715d833c0d86e9676a4fbddedca0a9}. 
+\\\\
+I was able to verify that executing the clustering algorithm included all 3 of these addresses in the result, and became confident of the correct transitive behaviour of my implementation of the clustering algorithm. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/neo4j-screenshots/addresses-transitively-clustered}\\[0.5cm] 
+  \caption{A screenshot of the Neo4J UI : Visual representation of addresses that are clustered transitively.}
+  \label{fig:neo4j-transitive-clustering-screenshot}
+\end{figure}

@@ -1,19 +1,19 @@
 \chapter{Backend API}\label{section-backend-api}
-In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, I developed a backend API to support the features of the front end web application as described in section \ref{section-investigation-tool}. 
+In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, we developed a backend API to support the features of the front end web application as described in section \ref{section-investigation-tool}. 
 
 \section{Technology Choices}
 The API was developed in Java using Spring Data as the predominant library used for communicating with Neo4J. 
 \\\\
-Spring Data provides powerful repository and object-mapping abstractions that can be used to define a data model and interact with the underlying data store through abstractions with relative ease. Spring Data has specific support for Neo4J, utilised by creating a repository that extends their \texttt{Neo4JRepository<>} interface. Spring Data repositories does much of the heavy lifting for you with query generation; queries will be derived from the repository method names that are defined. Spring Data also has support for many other underlying data repositories, such as MongoDB, Redit or Apache Cassandra. This would allow for the flexibility of changing the core underlying data store, or for new data sources from different types of data stores to be introduced.
+Spring Data provides powerful repository, and object-mapping, abstractions that can be used to define a data model and interact with the underlying data store through abstractions with relative ease. Spring Data has specific support for Neo4J, utilised by creating a repository that extends their \texttt{Neo4JRepository<>} interface. Spring Data repositories provide 'out-of-the-box' database interaction functionality, for example, queries will be derived from the repository method names that are defined. Spring Data also has support for many other underlying data repositories, such as MongoDB, Redis or Apache Cassandra. This would allow for the flexibility of changing the core underlying data store, or for new data sources from different types of data stores to be introduced.
 
 \subsection{Alternative Technologies}
-An alternative technology choice, which is often a popular approach, would be to create the API using Python Flask. This was considered and was an almost equal candidate for technology choice but I ultimately decided to choose Java \& Spring Data due to the huge community that exists for Spring MVC and its excellent documentation. Additionally, I was aware of the future potential of integrating Max Baylis Health Monitoring project [see \ref{background-max-baylist-project}] (written in Java) with my interface to Neo4J, in which case implementing the back-end in Java using Spring Data would make such an integration far easier. 
+An alternative technology choice, which is often a popular approach, would be to create the API using Python Flask. This was considered and was an almost equal candidate for technology choice but we ultimately decided to choose Java \& Spring Data due to the huge community that exists for Spring MVC and its excellent documentation. Additionally, we were aware of the future potential of integrating Max Baylis Health Monitoring project [see \ref{background-max-baylist-project}] (written in Java) with the interface to Neo4J, in which case implementing the back-end in Java using Spring Data would make such an integration far easier. 
 
 
 \section{API Design}
-The API follows a REST design pattern; generally, ID's used to GET an entity are a path variable. Any further options such as data required for filtering exist as an optional query parameter.  
+The API follows a REST design pattern; generally, IDs are used to retrieve (HTTP GET request) an entity by passing it as a path variable. Any further options, such as data required for filtering, exist as an optional query parameter.  
 
-\begin{lstlisting}[label={lst:address-api}, caption={Get an address using the unique full address. Several optional query parameters for filtering by time, price and enabling clustering and node limiting. \\[0.5cm] }, breaklines=true, basicstyle=\small]
+\begin{lstlisting}[label={lst:address-api}, caption={Get an address using the unique full address. Several optional query parameters for filtering by time, price and enabling clustering and node limiting.}, breaklines=true, basicstyle=\small]
 GET /bitcoin/address/{address | string}
     ?startTime={time filter start since epoch | string}
     &endTime={time filter end since epoch | string}
@@ -59,7 +59,8 @@ GET /bitcoin/shortestPath/{start address}/{end address}
 \end{lstlisting}
 
 \subsection{Responses}
-A typical response will contain all information for the requested entity, and its immediate neighbours. For example, the request \\\texttt{GET /bitcoin/address/1261hwCRfSEA8qLkVhLYS2a3CFzegiUxGU} will have the response shown in listing \ref{lst:output-response}. The start and end nodes are fully defined, and each intermediate node on the path (each potentially of a different type) are included in the \texttt{intermediateNodes} array, with the links that connect each of the nodes included in the \texttt{rels} array. 
+A typical response will contain all information for the requested entity, and its immediate neighbours. For example, the request \\\texttt{GET /bitcoin/address/1261hwCRfSEA8qLkVhLYS2a3CFzegiUxGU} will produce the response shown in listing \ref{lst:output-response}.
+As shown, searching for an address will return the ids of the neighbouring nodes which can subsequently be used in API calls that fetch neighbouring node data and, therefore, enable a user to trace the flow of funds. 
 
 \begin{lstlisting}[label={lst:output-response}, caption={GET Output Example Response}, breaklines=true, basicstyle=\small]
 {
@@ -89,7 +90,9 @@ A typical response will contain all information for the requested entity, and it
 }
 \end{lstlisting}
 
-The response for the path finder method takes on a different format. For example, executing the path finding query on addresses \textit{1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE} and \texttt{17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui} returns the response showwn in listing \ref{lst:path-find-response}.
+The response for the path finder method takes on a different format. For example, executing the path finding query on addresses \textit{1CrnUia9wfeNFbdwKJNj89YqA6qetvYTTE} and \texttt{17c6L9JUGVenn6CfqXuB93L3Tk8Tbzefui} returns the response shown in listing \ref{lst:path-find-response}.
+\\\\
+The start and end nodes are fully defined, and each intermediate node on the path (each potentially of a different type) are included in the \texttt{intermediateNodes} array, with the links that connect each of the nodes included in the \texttt{rels} array. 
 
 \begin{lstlisting}[label={lst:path-find-response}, caption={Response to a path find query}, breaklines=true, basicstyle=\small]
 [
@@ -128,22 +131,22 @@ The response for the path finder method takes on a different format. For example
 
 \section{Implementation} 
 \subsection{Overall Design}
-The API is created by the BitcoinController class. This is achieved using the Spring Data \texttt{@RestController} mapping under which the API exists under is created using the \texttt{@RequestMapping} annotation. Requests are handled by each of the methods shown on the BitcoinController class ion figure \ref{fig:backend-uml}. A request will be sent to the service which coordinates the data to be returned using a number of the repositories. There exists one repository for each type of entities. 
+The API is defined in a class named \lq BitcoinController \rq. Defining an API using this class is achieved using Spring Data by annotating the class with the \texttt{@RestController} and \texttt{@RequestMapping} annotations. Requests are handled by each of the methods shown in the BitcoinController class in figure \ref{fig:backend-uml}. A request will be sent to the service which coordinates the data to be returned using a number of the repositories. There exists one repository for each type of entities. 
 
 \begin{figure}
   \centering
-  \includegraphics[width = 15cm]{./figures/backend-uml}\\[0.5cm] 
-  \caption{Backend UML}
+  \includegraphics[width = 15cm]{./figures/backend-uml.pdf}\\[0.5cm] 
+  \caption{Backend API Implementation UML Diagram}
   \label{fig:backend-uml}
-\end{figure}
+\end{figure} 
 
 \subsection{Node Entities}
-Entities are defined as part of the data model using the Spring Data \texttt{@NodeEntity} annotation; Relationships from the database can be represented using the \texttt{Relationship} annotation. An example of a node entity class is the Transaction class; the implementation of the Transaction class can be seen in listing \ref{lst:node-entity-transaction}.
+A data model can be defined by creating classes and annotating them using the Spring Data \texttt{@NodeEntity} annotation; Relationships from the database are represented using the \texttt{@Relationship} annotation. An example of a node entity class implementation is the Transaction node type shown in listing \ref{lst:node-entity-transaction}.
 \\\\
-\texttt{@NodeEntity} is used to tell Spring Data this class represents the data model of a node in Neo4J. The \texttt{@Id} annotation identifies the \texttt{id} field as the nodes unique identifier from Neo4J. \texttt{@Relationship} annotations are used to populate the model with the other nodes in the graph the Transaction node is connected to. 
+The annotation \texttt{@NodeEntity} is used to tell Spring Data this class represents the data model of a node in Neo4J. The \texttt{@Id} annotation identifies the \texttt{id} field as the nodes unique graph identifier from Neo4J. \texttt{@Relationship} annotations on the class change the Cypher query send when fetching a node to additionally fetch neighbouring node data by traversing the relationships defined. This helps produce responses as shown in \ref{output-response} where the neighbouring node data is populated. 
 
 \subsection{Serialising Node Entities}
-The annotation \texttt{@JsonIgnoreProperties} is used to prevent infinite recursion when serialising responses to be returned by the API. For instance, if a Transaction references the Output node that it produces, and each Output references the Transaction node that produces it, the serialisation will indefinitely recurse until a stack overflow issue is encountered. Additionally, methods omitted from the listing for brevity are the Getter and Setter methods that exist for the properties; these methods help define the fields that should be serialised. For instance, no Getter exists for the \texttt{id} field since it is not required in the response. 
+The annotation \texttt{@JsonIgnoreProperties} is used to prevent infinite recursion when serialising responses to be returned by the API. For instance, if a Transaction references an Output node that it produces, and each Output references the Transaction node that produces it, the serialisation will indefinitely recurse until a stack overflow error is encountered, at which point serialisation fails. Additionally, methods omitted from the listing for brevity are the 'Getter and Setter' methods that exist for the properties; these methods help define the fields that should be serialised. For instance, no Getter exists for the \texttt{id} field since it is not required in the response. 
 
 \begin{lstlisting}[language=Java, label={lst:node-entity-transaction}, caption={A transaction node entity}, breaklines=true, basicstyle=\small]
 @NodeEntity(label = "TRANSACTION")
@@ -177,17 +180,16 @@ As shown in the UML diagram \ref{fig:backend-uml}, repositories all exist as int
 \\\\
 Comparatively, the method shortestPath does require a query definition using the Spring Data \texttt{@Query} annotation; this is as the query is more specialised and cannot be inferred.
 
-\begin{lstlisting}[language=Java, label={lst:address-repository}, caption={AddressRepository interface definition}, breaklines=true, basicstyle=\small]
-
+\begin{lstlisting}[label={lst:address-repository}, caption={AddressRepository interface definition}, breaklines=true, basicstyle=\small]
 
 public interface AddressRepository extends Neo4jRepository<Address, Long> {
 
     Address getAddressByAddress(@Param("address") String address);
 
-    @Query("MATCH " +
-            "(a1:ADDRESS{address:{0}}), " +
-            "(a2:ADDRESS{address:{1}}), " +
-            "p = shortestPath((a1)-[:INPUTS |:OUTPUTS |:LOCKED_TO*..100]-(a2)) " +
+    @Query("MATCH" +
+            "(a1:ADDRESS{address:{0}})," +
+            "(a2:ADDRESS{address:{1}})," +
+            "p = shortestPath((a1)-[:INPUTS|:OUTPUTS|:LOCKED_TO*..100]-(a2))" +
             "RETURN a1 as startNode, nodes(p) as intermediateNodes, relationships(p) as rels" +
             ", a2 as endNode")
     Iterable<Map<String, Object>> shortestPath(String sourceAddress, String destinationAddress);
@@ -195,8 +197,4 @@ public interface AddressRepository extends Neo4jRepository<Address, Long> {
 \end{lstlisting}
 
 \subsection{Implementing Path Finding}
-The implementation of the path finding functionality can be seen in listing \ref{lst:address-repository}. Neo4J provides the method \texttt{shortestPath} that can be used to find a path between two nodes; I restricted the type of paths to be of type \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED\_TO} in order for the path to represent the flow of funds, rather than paths existing simply due to the fact all addresses are connected via outputs that are spent in transactions that are mined in blocks which are chained from each-other.
-
-
-
-
+The implementation of the path finding functionality can be seen in listing \ref{lst:address-repository}. Neo4J provides the method \texttt{shortestPath} that can be used to find a path between two nodes; we restricted the type of paths to be of type \texttt{INPUTS}, \texttt{OUTPUTS} or \texttt{LOCKED\_TO} in order for the path to represent the flow of funds, rather than paths existing simply due to all nodes on the blockchain, by definition, being connected via their relationship with the blocks they are mined in, and blocks with each other. 
