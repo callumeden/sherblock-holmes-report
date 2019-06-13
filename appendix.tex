@@ -1,6 +1,62 @@
 \appendix
-
 \begin{appendices}
+\chapter{Locust Evaluation Results}
+\begin{sidewaysfigure}[h!]
+  \centering
+  \includegraphics[width = 22cm]{./figures/10-users-original}\\[0.5cm] 
+  \caption{Locust Statistics Dashboard for load of size 10 users}
+  \label{fig:10-users-original}
+\end{sidewaysfigure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/10-users-original-culprit}\\[0.5cm]
+  \caption{The Locust statistics dashboard for the requests ordered by decreasing response times; showing the shortest path requests to be responsible for response time spikes}
+  \label{fig:10-users-original-culprit}
+\end{figure}
+
+\begin{sidewaysfigure}[h!]
+  \centering
+  \includegraphics[width = 22cm]{./figures/100-users-performance-trace}\\[0.5cm] 
+  \caption{Locust Statistics Dashboard for load of size 100 users}
+  \label{fig:100-users-stats-dashboard}
+\end{sidewaysfigure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/100-users-shortestpath}\\[0.5cm]
+  \caption{The Locust statistics dashboard for the requests ordered by decreasing response times; showing the shortest path requests to be responsible for response time spikes}
+  \label{fig:100-users-path-finding-latencies}
+\end{figure}
+
+\begin{sidewaysfigure}[h!]
+  \centering
+  \includegraphics[width = 22cm]{./figures/10-users-no-path-locust}\\[0.5cm] 
+  \caption{Locust statistics dashboard for load of size 10 users, without shortest path requests}
+  \label{fig:10-users-stats-dashboard-no-path-finding}
+\end{sidewaysfigure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/10-users-no-path-culprit}\\[0.5cm]
+  \caption{Locust statistics dashboard for load of size 10 users, showing requests ordered by decreasing response times; showing the output requests responsible for the spikes in figure \ref{fig:10-users-stats-dashboard-no-path-finding}}.
+  \label{fig:10-users-slow-outputs}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/10-users-no-path-with-limit}\\[0.5cm]
+  \caption{Locust statistics dashboard for load of size 10 users, without path finding requests and including a node limit of 10.}.
+  \label{fig:10-users-no-path-with-limit}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/100-users-no-path-node-limit}\\[0.5cm]
+  \caption{Locust statistics dashboard for load of size 100 users, without path finding requests and including a node limit of 10.}.
+  \label{fig:100-users-no-path-with-limit}
+\end{figure}
+
 
 
 \end{appendices}

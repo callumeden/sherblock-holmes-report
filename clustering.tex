@@ -2,7 +2,7 @@
 
 The multi-input transaction clustering heuristic as introduced in section \ref{background:multi-input-tx} and as described in the paper 'A fistful of bitcoins...' \cite{Refworks:doc:5c3de7e3e4b0ea6196452d80} is one the most effective clustering heuristics for Bitcoin. In this section, we present the several implementations of clustering algorithms which uses the same input heuristic. We attempted clustering with many different approaches due to issues discovered while running each clustering algorithm. We also present the successful implementation in section \ref{clustering-raw-csv}.\todo{check this is accurate}
 
-\section{The Algorithm}
+\section{Algorithm}
 The rough outline of the algorithm is shown below.
 \begin{itemize}
     \item for each transaction $tx$ on the Blockchain
@@ -127,7 +127,7 @@ MATCH (:ADDRESS)-[r:INPUT_HEURISTIC_LINKED_ADDRESSES]-(:ADDRESS)
 DELETE r
 \end{lstlisting}
 
-\subsection{Performance Issues}
+\subsection{Challenges}
 When executing the query shown in Listing \ref{lst:clustering-cypher} we encountered performance issues where several hours would elapse with no apparent progress being made. 
 \\\\
 We investigated this issue using the Cypher \texttt{PROFILE} command to inspect the performance of this query. The performance report identified issues in the earlier stages where the query would require the search of all nodes across the database when matching transactions, inputs and addresses. Since we want to match all nodes, rather than using a specific ID that can leverage fast index lookups, this leads to a significant bottleneck in the query. Furthermore, investigating the issue using the \texttt{htop} command on the Satoshi VM, we could see that core utilisation was extremely low (almost completely idle).
@@ -141,7 +141,7 @@ By knowing exactly which address we want to perform the clustering for, and leve
 \\\\
 This implementation heavily relied on Java 8 streams, specifically using parallel streams to introduce concurrency in the clustering process, increasing the efficiency of this operation; critical for an on-demand implementation. 
 \\\\
-The implementation of this algorithm led me to discover that my initial implementation (Listing \ref{lst:clustering-java}) was not correct. This heuristic is transitive, such that if addresses A and B input the same transaction, and B and C input the same transaction then A, B and C can all be considered as under the control of the same user. My implementation in Listing \ref{lst:clustering-java} does not take this transitivity into account. However, we ensured transitivity was encountered before in my on-demand clustering algorithm in Listing \ref{lst:clustering-on-demand}.
+The implementation of this algorithm led me to discover that the initial implementation (Listing \ref{lst:clustering-java}) was not correct. This heuristic is transitive, such that if addresses A and B input the same transaction, and B and C input the same transaction then A, B and C can all be considered as under the control of the same user. The implementation in Listing \ref{lst:clustering-java} does not take this transitivity into account. However, we ensured transitivity was encountered before in the on-demand clustering algorithm in Listing \ref{lst:clustering-on-demand}.
 
 \begin{lstlisting}[language=Java, caption={Java Implementation of on demand clustering}, label={lst:clustering-on-demand}, breaklines=true, basicstyle=\small]
 private void performInputClustering(Address addressNode, Date start, Date end) {
@@ -195,7 +195,7 @@ private Stream<Address> getAddressesLinkedByTransaction(Transaction transaction,
 }
 \end{lstlisting}
 
-\subsection{Drawbacks \& Compromises}
+\subsection{Challenges}
 On-demand clustering begins to become unsuitable for extremely large clusters; for example, an address belonging to the wallet of SatoshiDice.com \\\texttt{1LaM2aDLEP49kLbE6y2hvnbrP3agbMwEHb} would belong to an extremely large cluster of many thousands of addresses, and clustering on-demand would simply take far too long to provide an acceptable user experience (we experimented with the above address and killed the request after 30 minutes had elapsed). For addresses belonging to large wallets like the one above, we attempt to cluster using the entity tagging information obtained in section \ref{section-entity-tagging} rather than using the multi-input heuristic.
 Since this data is stored in the database, it is quick to traverse the \texttt{HAS\_ENTITY} relationships from a known address to find all of the addresses in the cluster. Therefore, we prioritise providing entity clustering information over input clustering in order to provide as much valuable information over a shorter time; improving user experience. \\\\
 For those addresses that do not have a link with a known entity, but exist as part of large address clusters, we truncate the search to a limit $N$ that is defined by the user. The user can increase and decrease this limit, including disabling it completely, when initiating the search [see more on this in section \ref{section-investigation-tool}]. Therefore, the algorithm will halt once $N$ addresses belonging to the cluster have been found. This is a trade-off between usability and utility; the truncation makes the feature more usable since it provides more reasonable response times, however it does not provide a complete result. The user can still obtain a complete result by disabling the limit, albeit at the risk of poor user experience. 
@@ -205,8 +205,6 @@ The challenges experienced in previous implementations largely involved the nece
 \\\\
 Once the relationships exist between clustered addresses in the graph, it will be efficient to query the database for addresses in the same cluster of a particular address;  Neo4J is designed to traverse a large number of relationships extremely quickly. 
 \\\\
-
-\subsection{Approach}
 Each entry in the CSV file will have the format below where \texttt{ADDRESS\_IN\_CLUSTER} and \texttt{ANOTHER\_ADDRESS\_IN\_CLUSTER} are two Bitcoin addresses and \texttt{INPUTS\_SAME\_TX} is the name of the relationship. 
 
 \begin{lstlisting}

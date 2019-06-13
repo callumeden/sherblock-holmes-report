@@ -263,7 +263,7 @@ The thefts above were selected out of a large collection since these thefts, in 
 \section{Existing Forensic Tools}\label{background-existing-tools}
 There exist several digital forensic tools, both free and proprietary; we present in this section the information on these tools made available to the public (i.e. without making a purchase).  
 
-\subsection{Blockchain Explorer}
+\subsection{Blockchain Explorer}\label{background:blockchain-explorer}
 Blockchain Explorer, accessible at https://www.blockchain.com/explorer, provides a wealth of information (available on the blockchain) about addresses, transactions and blocks. For instance, users can search by a public address in order to inspect the transactions associated with it. It also has features to provide charts on Bitcoin statistics, such as the network hash rate and exchange rates. However, in order to carry out a forensic investigation, it will often be necessary to follow the path of funds between addresses, which would be simplified if it were possible to do this in a graphical way; a graphical interface is not provided by Blockchain Explorer.
 
 \begin{figure}[h!]
@@ -293,7 +293,7 @@ Wallet Explorer is a website which provides similar capabilities to Blockchain E
 \end{figure}
 \footnotetext{https://www.walletexplorer.com/}
 
-\subsection{Blockpath} 
+\subsection{Blockpath}\label{background:blockpath}
 Blockpath is a website that claims to be a Bitcoin accounting tool. The feature of this site that was the most interesting is the graphical explorer. The graph allows you to explore the relationship between addresses. However, there does not appear to be any mapping of multiple public addresses to a single entity (i.e. clustering), which would be vital to gaining real insights when performing forensic analysis.  
 
 \begin{figure}
@@ -316,7 +316,7 @@ There exist a number of companies claiming to offer similar solutions to Bitcoin
 
 
 \section{Importing Blockchain Data}\label{design-db-previous-work}
-There exists previous work in the domain of downloading the Bitcoin Blockchain. I first researched and assessed these implementations. 
+There exists previous work in the domain of downloading the Bitcoin Blockchain. We first researched and assessed these implementations. 
 
 \subsection{Bitcoin to Neo4J Tool: Open Source Project}
 There exists an open source tool, built by the author of the website \url{learnmeabitcoin.com}, which populates a Neo4J database with the entire Bitcoin Blockchain \cite{RefWorks:doc:5c98e031e4b068320632cef2}. This tool requires a full Bitcoin node to be run in order to have the .dat files stored locally; the tool will parse the .dat files and write them, using Cypher queries, to the Neo4J database. This approach has the advantage that it is well respected in the community and has been cited a number of times by those seeking to achieve the same goal \cite{RefWorks:doc:5c98e0cde4b044512c0b8641}; however, the tool will take several weeks (apparently 60+ days) to complete the import. 
@@ -331,7 +331,7 @@ TokenAnalyst published a blog article on Medium with the title 'How to load Bitc
 A company Blockchain Inspector who are 'using Artificial Intelligence to fight fraud in the Blockchain' have open-sourced a tool they use with the claim that it extracts Bitcoin data and writes it to a Neo4J database \cite{RefWorks:doc:5cac6184e4b01c076c63e173}.
 
 \subsection{Analysis of previous work}
-TokenAnalyst's approach seems to best describe the ideal situation for this project; an efficient bulk import into Neo4J and a mechanism for keeping the database up to date. There exists no open source implementation for their work, only a high-level description of what they did in their blog post. Max's work, however, is available to me and his work in fetching data using RPC could prove useful to my project. The Bitcoin to Neo4J tool would not be a feasible approach and can be immediately ruled out due to the time requirement of several weeks for the tool to complete; this would not be acceptable for the timescale of this project. As for Blockchain Inspector's open-source solution, upon inspection of the code, it seems the bulk import process relies on an existing database containing the entire Bitcoin Blockchain and therefore seems to be more of a tool to migrate from a traditional database to a relational one (Neo4J). It is therefore not very applicable to my work, creating an intermediate database storing the Bitcoin Blockchain for the bulk import would be unnecessary and expensive.
+TokenAnalyst's approach seems to best describe the ideal situation for this project; an efficient bulk import into Neo4J and a mechanism for keeping the database up to date. There exists no open source implementation for their work, only a high-level description of what they did in their blog post. Max's work, however, is available to me and his work in fetching data using RPC could prove useful to our project. The Bitcoin to Neo4J tool would not be a feasible approach and can be immediately ruled out due to the time requirement of several weeks for the tool to complete; this would not be acceptable for the timescale of this project. As for Blockchain Inspector's open-source solution, upon inspection of the code, it seems the bulk import process relies on an existing database containing the entire Bitcoin Blockchain and therefore seems to be more of a tool to migrate from a traditional database to a relational one (Neo4J). It is therefore not very applicable to our work, creating an intermediate database storing the Bitcoin Blockchain for the bulk import would be unnecessary and expensive.
 
 \section{Know Your Customer}\label{background-kyc}
 Know Your Customer (KYC) is a keystone in the fight against money laundering. It is the process of a business carrying out customer due-diligence measures and verifies the identity of its clients. This ensures the business is dealing with bonafide customers and organisations and helps identify suspicious behaviours or practices. These measures help satisfy anti-money laundering requirements (AML). 
