@@ -1,17 +1,17 @@
-\chapter{Backend API}\label{section-backend-api}
-In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, we developed a backend API to support the features of the front end web application as described in section \ref{section-investigation-tool}. 
+\chapter{Backend API: \textit{Loran}}\label{section-backend-api}
+In order to provide an interface for interacting with Neo4J, and to implement complex functionality such as clustering and path finding, we developed \textit{Loran} to support the features of the \textit{Radar} as described in section \ref{section-investigation-tool}. 
 
 \section{Technology Choices}
-The API was developed in Java using Spring Data as the predominant library used for communicating with Neo4J. 
+\textit{Loran} was developed in Java using Spring Data as the predominant library used for communicating with Neo4J. 
 \\\\
 Spring Data provides powerful repository, and object-mapping, abstractions that can be used to define a data model and interact with the underlying data store through abstractions with relative ease. Spring Data has specific support for Neo4J, utilised by creating a repository that extends their \texttt{Neo4JRepository<>} interface. Spring Data repositories provide 'out-of-the-box' database interaction functionality, for example, queries will be derived from the repository method names that are defined. Spring Data also has support for many other underlying data repositories, such as MongoDB, Redis or Apache Cassandra. This would allow for the flexibility of changing the core underlying data store, or for new data sources from different types of data stores to be introduced.
 
 \subsection{Alternative Technologies}
-An alternative technology choice, which is often a popular approach, would be to create the API using Python Flask. This was considered and was an almost equal candidate for technology choice but we ultimately decided to choose Java \& Spring Data due to the huge community that exists for Spring MVC and its excellent documentation. Additionally, we were aware of the future potential of integrating Max Baylis Health Monitoring project [see \ref{background-max-baylist-project}] (written in Java) with the interface to Neo4J, in which case implementing the back-end in Java using Spring Data would make such an integration far easier. 
+An alternative technology choice, which is often a popular approach, would be to create \textit{Loran} using Python Flask. This was considered and was an almost equal candidate for technology choice but we ultimately decided to choose Java \& Spring Data due to the huge community that exists for Spring MVC and its excellent documentation. Additionally, we were aware of the future potential of integrating Max Baylis Health Monitoring project [see \ref{background-max-baylist-project}] (written in Java) with the interface to Neo4J, in which case implementing \textit{Loran} in Java using Spring Data would make such an integration far easier. 
 
 
 \section{API Design}
-The API follows a REST design pattern; generally, IDs are used to retrieve (HTTP GET request) an entity by passing it as a path variable. Any further options, such as data required for filtering, exist as an optional query parameter.  
+\textit{Loran} follows a REST design pattern; generally, IDs are used to retrieve (HTTP GET request) an entity by passing it as a path variable. Any further options, such as data required for filtering, exist as an optional query parameter.  
 
 \begin{lstlisting}[label={lst:address-api}, caption={Get an address using the unique full address. Several optional query parameters for filtering by time, price and enabling clustering and node limiting.}, breaklines=true, basicstyle=\small]
 GET /bitcoin/address/{address | string}
@@ -136,7 +136,7 @@ The API is defined in a class named \lq BitcoinController \rq. Defining an API u
 \begin{figure}
   \centering
   \includegraphics[width = 15cm]{./figures/backend-uml.pdf}\\[0.5cm] 
-  \caption{Backend API Implementation UML Diagram}
+  \caption{\textit{Loran} Implementation UML Diagram}
   \label{fig:backend-uml}
 \end{figure} 
 
@@ -146,7 +146,7 @@ A data model can be defined by creating classes and annotating them using the Sp
 The annotation \texttt{@NodeEntity} is used to tell Spring Data this class represents the data model of a node in Neo4J. The \texttt{@Id} annotation identifies the \texttt{id} field as the nodes unique graph identifier from Neo4J. \texttt{@Relationship} annotations on the class change the Cypher query send when fetching a node to additionally fetch neighbouring node data by traversing the relationships defined. This helps produce responses as shown in \ref{output-response} where the neighbouring node data is populated. 
 
 \subsection{Serialising Node Entities}
-The annotation \texttt{@JsonIgnoreProperties} is used to prevent infinite recursion when serialising responses to be returned by the API. For instance, if a Transaction references an Output node that it produces, and each Output references the Transaction node that produces it, the serialisation will indefinitely recurse until a stack overflow error is encountered, at which point serialisation fails. Additionally, methods omitted from the listing for brevity are the 'Getter and Setter' methods that exist for the properties; these methods help define the fields that should be serialised. For instance, no Getter exists for the \texttt{id} field since it is not required in the response. 
+The annotation \texttt{@JsonIgnoreProperties} is used to prevent infinite recursion when serialising responses to be returned by \textit{Loran}. For instance, if a Transaction references an Output node that it produces, and each Output references the Transaction node that produces it, the serialisation will indefinitely recurse until a stack overflow error is encountered, at which point serialisation fails. Additionally, methods omitted from the listing for brevity are the 'Getter and Setter' methods that exist for the properties; these methods help define the fields that should be serialised. For instance, no Getter exists for the \texttt{id} field since it is not required in the response. 
 
 \begin{lstlisting}[language=Java, label={lst:node-entity-transaction}, caption={A transaction node entity}, breaklines=true, basicstyle=\small]
 @NodeEntity(label = "TRANSACTION")

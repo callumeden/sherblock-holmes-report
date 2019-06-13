@@ -1,5 +1,5 @@
-\chapter{Web UI Investigation Tool}\label{section-investigation-tool}
-The web application is designed as a single page web-application, such that changes in the URL represent the application rendering a different view dynamically, rather than making a request for a new web-page. 
+\chapter{Investigation Tool: \textit{Radar}}\label{section-investigation-tool}
+Our investigation tool \textit{Radar} is a single-page web application developed using Angular \& Typescript. 
 
 \section{Technology Choices}
 \subsection{Angular 6 \& TypeScript}
@@ -13,7 +13,7 @@ Angular supports RxJS, an asynchronous programming library. This provides an alt
 React is another solution to building single-page web-applications that is popular in the industry. However, React is a library whereas Angular is a fully-fledged MVC framework providing far more 'out-the-box' functionality. React only provides the 'V' (the view) and will require several other libraries to fill in the model ('M') and controller ('C') components of MVC. Due to our familiarity with Angular, and relative unfamiliarity with React, there would potentially be a steep learning curve adopting React for this project. Angular would allow me to build and iterate fast since much of the basic functionality is provided by Angular 'out-the-box'.
 
 \subsection{D3}
-D3.js is a JavaScript library that can be used for generating SVG visualisations in the DOM. D3 has no direct connection to Neo4J, unlike some other tools. The data will, therefore, be retrieved using our own database API and will involve further steps to fetch the data to render; however, this is advantageous as it will provide the flexibility to customise the API implementation to support complex features or to potentially use several data sources to orchestrate a response. 
+D3.js is a JavaScript library that can be used for generating SVG visualisations in the DOM. D3 has no direct connection to Neo4J, unlike some other tools. The data will be retrieved using \textit{Loran} and will involve further steps to fetch the data to render; however, this is advantageous as it will provide the flexibility to customise \textit{Loran's} implementation to support complex features or to potentially use several data sources to orchestrate a response. 
 
 \subsubsection{Alternatives to D3}
 There exist some visualisation tools that have embedded connections to Neo4J. We initially considered these tools as a possible simplification of the visualisation element of the web application; however, these tools such as Neovis.js and Popoto.js seem too restrictive in that their data format must align with the data format in Neo4J. They appear to be very suitable for visually mirroring the data in Neo4J, but we believe for this project, with the scope for many visual features with data persisted in locations other than Neo4J, this will prove to be too constraining. As for other JavaScript libraries similar to D3 with high customisability, we chose D3 due to the abundance of documentation, community support and example projects that D3 has. 
@@ -61,7 +61,7 @@ The overall architecture of the web application can be seen in figure \ref{fig:w
             //handle data update
         });
     \end{lstlisting}
-    \item Bitcoin Service: Uses Angular's HTTP library to make HTTP requests to the backend API to fetch new data. The calls return an observable with generic type corresponding to the data model it will populate. For example, a call to fetch an address node is:
+    \item Bitcoin Service: Uses Angular's HTTP library to make HTTP requests to \textit{Loran} to fetch new data. The calls return an observable with generic type corresponding to the data model it will populate. For example, a call to fetch an address node is:
     \begin{lstlisting}[breaklines=true, basicstyle=\small]
         return this.http.get<Address>(this.serviceDomain + "/bitcoin/getAddress/" + address + this.buildQueryParams()); 
     \end{lstlisting}
@@ -95,7 +95,7 @@ An investigation can be initiated by searching for a particular bitcoin address.
 \end{figure}
 
 \subsection{Search by Entity Name}
-In order to facilitate investigations that relate to thefts of popular exchanges, we provide the functionality to initiate an investigation using an entity name. If the entity name exists in the database (i.e. if it was collected in section \ref{section-entity-tagging} from walletexplorer.com), then the investigation tool will be able to show a bigger picture of all the outputs/transactions associated with the entity, rather than just a single address it uses [see fig \ref{fig:bitcoinica-old-result}]. This will provide a better picture of the true transactions associated with an entity at a given date/time. 
+In order to facilitate investigations that relate to thefts of popular exchanges, we provide the functionality to initiate an investigation using an entity name. If the entity name exists in the database (i.e. if it was collected in section \ref{section-entity-tagging} from walletexplorer.com), then \textit{Radar} will be able to show a bigger picture of all the outputs/transactions associated with the entity, rather than just a single address it uses [see fig \ref{fig:bitcoinica-old-result}]. This will provide a better picture of the true transactions associated with an entity at a given date/time. 
 
 \begin{figure}[h!]
   \centering
@@ -107,7 +107,7 @@ In order to facilitate investigations that relate to thefts of popular exchanges
 \begin{figure}[h!]
   \centering
   \includegraphics[width = 15cm]{./figures/bitcoinica-enity-search}\\[0.5cm]
-  \caption{A screenshot of the investigation tool result when searching for the 'bitcoinica-old.com' entity}
+  \caption{A screenshot of \textit{Radar's} result when searching for the 'bitcoinica-old.com' entity}
   \label{fig:bitcoinica-old-result}
 \end{figure}
 
@@ -124,7 +124,7 @@ Additionally, clicking on each field in the node information box automatically c
 \end{figure}
 
 \subsection{Link Data}
-A primary use of the investigation tool will be to investigate the flow of funds; it is important to make this information visible and digestible. Therefore, each link representing a flow of funds (between \texttt{OUTPUT} and \texttt{TRANSACTION} nodes) displays the value of the funds in BTC and whichever fiat currency the user selects as their preference when searching (GBP, EUR, USD). The link data also provides a timestamp representing the time the transaction was included in the blockchain; this provides context to the value of the output with respect to their fiat currencies. 
+A primary use of \textit{Radar} will be to investigate the flow of funds; it is important to make this information visible and digestible. Therefore, each link representing a flow of funds (between \texttt{OUTPUT} and \texttt{TRANSACTION} nodes) displays the value of the funds in BTC and whichever fiat currency the user selects as their preference when searching (GBP, EUR, USD). The link data also provides a timestamp representing the time the transaction was included in the blockchain; this provides context to the value of the output with respect to their fiat currencies. 
 \\\\
 The screenshot shown in figure \ref{fig:link-data} exemplifies the importance of a fiat currency conversion: the same unit of 0.5 BTC is output by transaction \texttt{432f18...} as is input into transaction \texttt{96455e...}, however their equivalent fiat value in USD is very different at $\$1,688$ when the output is produced and $\$2,102$ when the output is spent. The timestamp will also provide context around the timeline of this transfer of funds, in addition to providing an explanation for vast differences in fiat currency value of a particular output.
 
@@ -245,7 +245,7 @@ User input validation exists wherever the user manually inputs data across the w
     \item On the Address Search Form : 404, Entity not found \textit{(if address does not exist)}
 \end{itemize}
 
-Additionally, to indicate loading states to the user, search forms display an animated loading bar while waiting for a request to return from the backend API. This becomes particularly important for requests that have many linked addresses through clustering since some responses could take several seconds. To convey loading feedback to the user within the investigation view (the graph) when a user double-clicks a node and waits for its nodes to expand, we animate the node such that it pulsates until the request successfully completes and the new nodes are added to the graph. 
+Additionally, to indicate loading states to the user, search forms display an animated loading bar while waiting for a request to return from \textit{Loran}. This becomes particularly important for requests that have many linked addresses through clustering since some responses could take several seconds. To convey loading feedback to the user within the investigation view (the graph) when a user double-clicks a node and waits for its nodes to expand, we animate the node such that it pulsates until the request successfully completes and the new nodes are added to the graph. 
 
 \subsection{Add custom nodes}
 It is possible to add custom nodes to the graph. The intention of this feature is the nodes will contain information to complement an active investigation; usually, this data will have an off-chain source. There exist various custom node types, based on the typical types of off-chain data that may exist in an investigation. One of these types is photographic ID, which provides the option to upload an image to be displayed in a custom node. The form for adding a new custom node of photographic id type can be seen in figure \ref{fig:add-passport-form}. The user can additionally choose to define an arbitrary number of custom fields in a key, value format. 

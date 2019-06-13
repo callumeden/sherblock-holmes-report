@@ -2,7 +2,7 @@
 \section{Meeting Investigators from Industry} 
 In order to gain feedback from the target end-users of this tool, we arranged a meeting with Mat Stanley, a Detective Sergeant of a London Metropolitan Police cryptocurrency investigation unit and, in order to also gain a private sector industry perspective, Iggy Azad who is a senior investigator at Coinbase.
 \\\\
-I arranged the meeting with the goal of obtaining qualitative feedback on the investigation tool based on their domain knowledge and experiences investigating cryptocurrency crime and learn how they currently achieve this using existing tools. We used this opportunity to find out more about the offerings of the proprietary software on the market that they have had experience with, such as ChainAnalysis, in order to compare the strengths and shortcomings of existing proprietary solutions.
+I arranged the meeting with the goal of obtaining qualitative feedback on \textit{Radar} based on their domain knowledge and experiences investigating cryptocurrency crime and learn how they currently achieve this using existing tools. We used this opportunity to find out more about the offerings of the proprietary software on the market that they have had experience with, such as ChainAnalysis, in order to compare the strengths and shortcomings of existing proprietary solutions.
 
 \subsection{Successes and Weaknesses}
 From the meeting with Mat and Iggy, where we demonstrated the current functionality of the tool, we obtained qualitative feedback such that we were able to identify areas of success and areas of weakness in the current implementation. These areas are summarised below:
@@ -19,7 +19,7 @@ From the meeting with Mat and Iggy, where we demonstrated the current functional
 \end{itemize}
 
 \subsection{Desirable features}
-Further to our conversation with Mat and Iggy, we were able to curate a list of features that would be useful to someone wishing to investigate cryptocurrency using this tool. These features are:
+Further to our conversation with Mat and Iggy, we were able to curate a list of features that would be useful to someone wishing to investigate cryptocurrency using \textit{Radar}. These features are:
 \begin{itemize}
     \item Support for several cryptocurrencies. Namely: Ethereum, Litecoin, Bitcoin, Bitcoin Cash, Dash
     \item Ability to save a graph state as an investigation and come back to it later
@@ -123,7 +123,7 @@ bc1qzzygmd9klrqce6q\-j0pfx2vzk763z8stq457zv5 & bc1qzzzagxs2f5dtk2u\-dx7q4zqc89n2
 As shown from the table above, the average response times reported when profiling path finding queries are magnitudes greater than for individual nodes. 
 
 \subsection{Performance Under Load}\label{evaluation:performance-under-load}
-Below we evaluate the performance of requests sent to the back-end API created in section \ref{section-backend-api}. If we were to measure single requests individually, with the database handling no other requests than the one being measured, we will not obtain a realistic representation of performance in a production environment. Therefore, we use Locust.io to simulate many users concurrently using the tool and invoking requests to the API. We also use Locust to measure statistics regarding latency and counts of success/fail responses. 
+Below we evaluate the performance of requests sent to \textit{Loran} created in section \ref{section-backend-api}. If we were to measure single requests individually, with the database handling no other requests than the one being measured, we will not obtain a realistic representation of performance in a production environment. Therefore, we use Locust.io to simulate many users concurrently using the tool and invoking requests to the API. We also use Locust to measure statistics regarding latency and counts of success/fail responses. 
 \\\\
 Using Locust, we define a set of tasks that a typical user may perform, with a time range in which a user may perform them in. We then run experiments which launch a 'swarm' of simulated users performing these requests concurrently in order to observe how the system performs under stress; particularly inspecting failure rates and response times.
 \\\\
@@ -222,7 +222,7 @@ Since TokenAnalyst performed the job of populating a database with Bitcoin data 
 TokenAnalyst are able to achieve writing all Bitcoin data to CSV in 6 hours, compared to our 12 hours [see section \ref{section-blockchain-download}]. Again, greater physical resources will have given them greater ability to parallelise the workload and achieve better performance. However, one weakness in our approach is the necessity to manually intervene between sub-jobs (i.e between the download of blocks 100k-200k and 201k-300k etc). This was done in order to mitigate the consequences of the overall job failed, however, this mitigation could be replicated in an automated fashion in order to reduce idle time across the download period. 
 
 \section{Performing a historical investigation}
-As described earlier in section \ref{background:significant-thefts}, there are several well-known thefts of Bitcoin exchanges, where very large sums of bitcoin were stolen. Using simple information available for these thefts, such as the wallet name and the date, we show how this investigation tool can be used to provide a better understanding into the flow of bitcoin funds away from its rightful owner.
+As described earlier in section \ref{background:significant-thefts}, there are several well-known thefts of Bitcoin exchanges, where very large sums of bitcoin were stolen. Using simple information available for these thefts, such as the wallet name and the date, we show how \textit{Radar} can be used to provide a better understanding into the flow of bitcoin funds away from its rightful owner.
 \\\\
 One example we use is the Linode Hacks which targeted bitcoinica.com on the 1st March 2012. We used this wallet name (bitcoinica.com-old) as a starting point of the investigation, only looking at transactions for the date 1st March 2012. 
 \\\\
@@ -354,38 +354,38 @@ Given the example above, where we would like to investigate a theft that occurre
     \item Can follow the peeling chain in same manner as before with one click on 'next tx' - \textbf{n clicks for n steps of the peeling chain}
 \end{itemize}
 
-In comparison, the steps taken to obtain similar data using the investigation tool developed in this project are:
+In comparison, the steps taken to obtain similar data using \textit{Radar} developed in this project are:
 \begin{itemize}
-    \item Navigate to the investigation tool website: \textbf{one click}
+    \item Navigate to \textit{Radar}: \textbf{one click}
     \item \textbf{One click} to initiate the search for the 'Bitcoinica.com' wallet with all date and price filter applies such that only nodes for 1st March are shown and only transactions of high BTC value are shown 
     \item Can instantly identify the high value transaction \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732} so can trace the funds from that output by double-clicking and seeing the address \\\texttt{128u4nNS2DCbPk61aNAXLUTsHZt5FAEtit} : \textbf{one click}
     \item Can now follow the peeling chain for one click for each step \textbf{n clicks for n steps of the peeling chain}
 \end{itemize}
 We use a quantitative measure of the 'number of user clicks' to measure the number of steps that need to be taken to follow a peeling chain after a theft for a given wallet. 
 \\\\\
-Using Wallet Explorer, we find we require \textbf{5 + n clicks} whereas using our investigation tool, just \textbf{3 + n clicks} when following \textbf{n} steps of a peeling chain from the same theft.
+Using Wallet Explorer, we find we require \textbf{5 + n clicks} whereas using \textit{Radar}, just \textbf{3 + n clicks} when following \textbf{n} steps of a peeling chain from the same theft.
 \\\\
-Qualitatively, the investigation tool made following the peeling chain far easier as you are given the option to see where funds peel off to from any stage - using walletexplorer, you can only see one step of the peeling chain at any one time; the investigation tool shows the entire path and overall paints a better picture of the flow of funds. 
+Qualitatively, \textit{Radar} made following the peeling chain far easier as you are given the option to see where funds peel off to from any stage - using walletexplorer, you can only see one step of the peeling chain at any one time; \textit{Radar} shows the entire path and overall paints a better picture of the flow of funds. 
 \\\\
-Additionally, a factor not considered in the above click metric is if the user wanted to know what the value of each stage was in its respective fiat currency. The investigation tool integrates the converted values into the UI; using Wallet Explorer, we would have to add several more clicks to measure the effort required to convert the transaction values to a fiat currency.
+Additionally, a factor not considered in the above click metric is if the user wanted to know what the value of each stage was in its respective fiat currency. \textit{Radar} integrates the converted values into the UI; using Wallet Explorer, we would have to add several more clicks to measure the effort required to convert the transaction values to a fiat currency.
 
 \subsection{Blockchain Explorer}
-We compare the functionality of our investigation tool to that provided by Blockchain Explorer [see \ref{background:blockchain-explorer}]; we do not use the clicks metrics as before due to variations in the functionality provided by each tool. Therefore, we carry out a qualitative comparison.
+We compare the functionality of \textit{Radar} to that provided by Blockchain Explorer [see \ref{background:blockchain-explorer}]; we do not use the clicks metrics as before due to variations in the functionality provided by each tool. Therefore, we carry out a qualitative comparison.
 \\\\
 Blockchain explorer does not provide the functionality to search by an entity name such as 'Bitcoinica.com'; therefore, we would struggle to identify the transactions related to a theft from this entity. 
 \\\\
-Skipping the step of identifying suspicious transactions and presuming we had a particular transaction of interest, such \texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}. At this point, we have similar functionality as provided by Wallet Explorer and can follow links to see each transaction in isolation and trace the peeling chain, but with the same drawbacks in comparison to our investigation tool that it does not show the whole path. 
+Skipping the step of identifying suspicious transactions and presuming we had a particular transaction of interest, such \texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}. At this point, we have similar functionality as provided by Wallet Explorer and can follow links to see each transaction in isolation and trace the peeling chain, but with the same drawbacks in comparison to \textit{Radar} that it does not show the whole path. 
 \\\\
 A feature that Blockchain Explorer does provide is a conversion into USD; however, this is not a historical conversion, this is a conversion according to the current exchange rate. For instance, when viewing the above transaction on the site on 12th June 2019, we see it shows the 20,555 BTC output sent to address \texttt{DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif} has a value in USD of \$164,885,221.3. However, when this theft occurred, bitcoin had a value that was magnitudes lower than its value today, therefore this conversion on Blockchain Explorer may not be very useful to understanding the value of transactions that occurred during the 2012 theft. 
 
 \subsection{Blockpath}
-We compare the functionality offered by Blockpath [see \ref{background:blockpath}] to our investigation tool. Again, we do not use the clicks metric as before due to vast variations in the functionality offered. Therefore, we carry out a qualitative comparison only,
+We compare the functionality offered by Blockpath [see \ref{background:blockpath}] to \textit{Radar}. Again, we do not use the clicks metric as before due to vast variations in the functionality offered. Therefore, we carry out a qualitative comparison only,
 \\\\
 Similar to Blockchain Explorer, Blockpath provides the ability to search for particular transactions and addresses, but not the ability to find all activity for an entity such as 'Bitcoinica.com', so it would be difficult to use this tool to identify a suspicious address. 
 \\\\
-A distinguishing feature Blockpath provides that the other tools do not is a graphical interface. Using a given suspicious transaction ID \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}, we attempt to follow the peeling chain using the graphical interface. Similar to our investigation tool, funds can be followed by double clicking on nodes which will expand the next step in the flow of funds. 
+A distinguishing feature Blockpath provides that the other tools do not is a graphical interface. Using a given suspicious transaction ID \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}, we attempt to follow the peeling chain using the graphical interface. Similar to \textit{Radar}, funds can be followed by double clicking on nodes which will expand the next step in the flow of funds. 
 \\\\
-A feature of Blockpath's graph visualisation which we believe is very useful is the timeline on the left-hand side [see fig \ref{fig:blockpath-graph-ui-time-organisation}], and organisation of nodes vertically based on their timestamps. The organisation of nodes in Blockpath's graph visualisation is, therefore, more meaningful than in our investigation tool, where the arrangement is random. 
+A feature of Blockpath's graph visualisation which we believe is very useful is the timeline on the left-hand side [see fig \ref{fig:blockpath-graph-ui-time-organisation}], and organisation of nodes vertically based on their timestamps. The organisation of nodes in Blockpath's graph visualisation is, therefore, more meaningful than in \textit{Radar}, where the arrangement is random. 
 \\\\
 However, Blockpath does not provide the option to filter such that only transactions for a particular date or value are shown; this, therefore, leads to bloat of the graph which could make tracing the flow of funds more difficult [see figure \ref{fig:blockpath-graph-ui}]. 
 
