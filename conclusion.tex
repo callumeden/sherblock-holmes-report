@@ -12,7 +12,7 @@ An interactive graphical display using force directed graphs for navigating the 
 \subsection{Future of Crypto-Currency Law Enforcement}
 The uptake of crypto-currencies with even stronger privacy-preserving features is a cause for concern to law enforcement; crypto-currencies such as Monero [see \ref{background-monero}] make many currency investigation techniques unsuitable for investigating criminal activity using Monoero. Mat stated this is an issue, however due to the sophistication of Monero and its relative difficulty of use, such a low proportion of criminals are understood to be using it, in comparison to Bitcoin usage. There is additionally hurdles in the way of users wishing to buy and sell Monero; Mat referred to an example where, in Japan, exchanges will have their license remove if they accept Monero.
 
-\subsubsection{Working with data at scale}
+\subsection{Working with data at scale}
 Data engineering on a vast scale was one of the most significant experiences and lessons taken from this project. At almost every stage in this project, it was essential to consider the algorithmic complexity of our implementation, in addition to how data is going to be stored when we no longer have the assumption it can be kept in memory; careful consideration of data storage solutions was required, and therefore consideration of the access latencies each will provide for particular queries (e.g. simple key,value lookups could be satifised by MongoDB with an index, but traversing the many relationships or path finding would be better suited to Neo4J, a graph database). 
 \\\\
 Throughout the project, we took a different approach to implementation to account for the scale of the dataset. Examples of this include:
@@ -60,7 +60,7 @@ Further functionality related to investigation state, which was highlighted by t
 \subsection{Exporting investigation data}
 Data from an investigation conducted using the tool may be required as evidence, such as in court to be viewed by a jury. The data must therefore be exportable as a standardised format, such as CSV. It would additionally be useful to be able to share an investigation with colleagues; a useful feature would be the facility to send a unique link to another user which generates the same investigation view. 
 
-\subsection{Change Address Clustering Heuristic}
+\subsection{Change Address Clustering Heuristic}\label{conclusion:change-address-clustering}
 The first useful clustering heuristic to add to the tool will be the same-change-address heuristic as described in section \ref{background:cluster-change-address} with infrastructure in place to continuously cluster new incoming bitcoin data and improve existing clustering on historical data (i.e. discount addresses previously considered change-addresses if they are used again as outputs of new transactions).
 \textbf{Algorithm:}
 \begin{itemize}
@@ -89,7 +89,7 @@ Additional heuristics to incorporate into the tool could include behaviour based
 Another method of grouping / tagging distinct addresses could be by the address type. As discussed in section \ref{background-address-types} there are different types of Bitcoin addresses, such as Pay-to-PubKey-Hash (P2PKH) addresses or Pay-to-Script-Hash (P2SH) addresses. It may be useful to make a visual distinction between these types of addresses as they could potentially represent a different role in an organisation; for instance a P2SH address used in a multi-signature transaction may be useful in understanding what the purpose of the transaction is, compared to if it was a P2PKH address. 
 
 \subsection{Set up watches for nodes}
-Rather than periodically checking if a particular address has spent its outputs, it would be far more useful and efficient for the investigator to be able to set up a notification whenever some particular state regarding that address changes. This idea could be extended to entire wallets, such as watching transactions exceeded a certain value being spent by the 'Mt.Gox' wallet. Additionally, it could perhaps be possible to create watches for structural/usage patterns occurring across the blockchain. For example, 'watch for this address being involved in a peeling chain'. 
+Rather than periodically checking if a particular address has spent its outputs, it would be far more useful and efficient for the investigator to be able to set up a notification whenever some particular state regarding that address changes. This idea could be extended to entire wallets, such as watching transactions exceeded a certain value being spent by the 'Mt.Gox' wallet. Additionally, it could perhaps be possible to create watches for structural/usage patterns occurring across the Blockchain. For example, 'watch for this address being involved in a peeling chain'. 
 
 \subsection{UI Improvements}
 Some smaller improvements/feature additions to the UI that can improve existing functionality 

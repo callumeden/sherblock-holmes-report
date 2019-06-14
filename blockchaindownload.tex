@@ -2,7 +2,7 @@
 This section will cover the approach taken to retrieve and store all historical Bitcoin transactions, up to an appropriate (recent) block height of 570,000 - mined on 3rd April 2019. 
 
 \section{Hardware}\label{satoshi-specs}
-I had access to a VM on a machine provided by the Department of Computing at Imperial.  The VM has the following resource allocated to it:
+I had access to a VM on a machine, \textit{Satoshi}, provided by the Department of Computing at Imperial.  The VM has the following resource allocated to it:
 \begin{itemize}
     \item \textbf{Processor}: 16 of 24 cores, AMD EPYC 7401
     \item \textbf{Memory}: 16GB
@@ -10,7 +10,7 @@ I had access to a VM on a machine provided by the Department of Computing at Imp
 \end{itemize}
 
 \section{Retrieving historical Bitcoin Transactions}
-After analysing the various approaches taken previously to retrieve all bitcoin transactions, we decided to adapt the contribution of Max Baylis' Health Monitoring project [see \ref{background-max-baylist-project}]. Max's approach uses WebFlux to create parallel streams of data fetched using RPC and writes it to MongoDB; we adapted this work to divert the data into a CSV format suitable for importing into Neo4J. Below we describe the steps taken to successfully build CSV files for the entire Bitcoin Blockchain. 
+After analysing the various approaches taken previously to retrieve all bitcoin transactions, we decided to adapt the contribution of Max Baylis' Health Monitoring project [see \ref{background-max-baylist-project}] to build \textit{Astrolabe}. Max's approach uses WebFlux to create parallel streams of data fetched using RPC and writes it to MongoDB; we adapted this work to divert the data into a CSV format suitable for importing into Neo4J. Below we describe the steps taken to successfully build CSV files for the entire Bitcoin Blockchain. 
 
 \begin{itemize}
     \item Introduced a new API endpoint. The new endpoint was named \texttt{extractBitcoinToNeo4j}. This accepted two arguments as path variables, \texttt{fromHeight} and \texttt{toHeight} which are to be used to define the range of blocks to fetch data from. 

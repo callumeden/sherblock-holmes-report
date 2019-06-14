@@ -14,9 +14,6 @@
 % load some macros
 \input{notation}
 
-% load glossary definitions
-\input{glossary}
-
 \usepackage{microtype}
 % load title page
 \begin{document}
@@ -29,6 +26,11 @@
 \setcounter{page}{1}
 \pagestyle{fancy}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{acknowledgements}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %--- table of contents
@@ -41,8 +43,6 @@
 \fancyhead[LE,RO]{\slshape \rightmark}
 \fancyhead[LO,RE]{\slshape \leftmark}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\printglossaries
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \include{introduction}
@@ -70,6 +70,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \include{investigationtool}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{overallarchitecture}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

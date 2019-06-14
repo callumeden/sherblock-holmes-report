@@ -2,7 +2,7 @@
 \section{Meeting Investigators from Industry} 
 In order to gain feedback from the target end-users of this tool, we arranged a meeting with Mat Stanley, a Detective Sergeant of a London Metropolitan Police cryptocurrency investigation unit and, in order to also gain a private sector industry perspective, Iggy Azad who is a senior investigator at Coinbase.
 \\\\
-I arranged the meeting with the goal of obtaining qualitative feedback on \textit{Radar} based on their domain knowledge and experiences investigating cryptocurrency crime and learn how they currently achieve this using existing tools. We used this opportunity to find out more about the offerings of the proprietary software on the market that they have had experience with, such as ChainAnalysis, in order to compare the strengths and shortcomings of existing proprietary solutions.
+We arranged the meeting with the goal of obtaining qualitative feedback on \textit{Radar} based on their domain knowledge and experiences investigating cryptocurrency crime and learn how they currently achieve this using existing tools. We used this opportunity to find out more about the offerings of the proprietary software on the market that they have had experience with, such as ChainAnalysis, in order to compare the strengths and shortcomings of existing proprietary solutions.
 
 \subsection{Successes and Weaknesses}
 From the meeting with Mat and Iggy, where we demonstrated the current functionality of the tool, we obtained qualitative feedback such that we were able to identify areas of success and areas of weakness in the current implementation. These areas are summarised below:
@@ -84,7 +84,7 @@ We performed profiling for 20 randomly selected ID's for several types of nodes.
 \end{tabular}
 \end{center}
 
-I performed the same profiling for each other type of entity that is retrieved as part of the functionality for the site. These other entities are shown below along with their average response times for 20 random ids of each type. Each individual query response time is omitted for brevity. 
+We performed the same profiling for each other type of entity that is retrieved as part of the functionality for the site. These other entities are shown below along with their average response times for 20 random ids of each type. Each individual query response time is omitted for brevity. 
 \\\\
 \begin{center}
 \begin{tabular}{ |c|c| } 
@@ -152,7 +152,7 @@ Observations over 10 minutes:
 \end{itemize}
 
 \subsubsection{100 Concurrent Users}
-I attempted this experiment in order to observe how the system behaves under a significantly larger load. The statistics dashboard for this experiment can be seen in \ref{fig:100-users-stats-dashboard}. 
+We attempted this experiment in order to observe how the system behaves under a significantly larger load. The statistics dashboard for this experiment can be seen in \ref{fig:100-users-stats-dashboard}. 
 \\\\
 Observations:
 \begin{itemize}
@@ -198,7 +198,7 @@ From these experiments, we learnt that under significant load, the path finding 
 
 
 \subsection{Blockchain Import}
-As described in section \ref{section-blockchain-import}, the import of the Bitcoin Blockchain up to block 570,000 took \textbf{5 hours, 32 minutes and 54 seconds}, which was performed in a VM with the specifications described earlier in section \ref{satoshi-specs}.
+As described in section \ref{section-blockchain-import}, running \textit{Astrolabe} to import the Bitcoin Blockchain up to block 570,000 took \textbf{5 hours, 32 minutes and 54 seconds}, which was performed in a VM with the specifications described earlier in section \ref{satoshi-specs}.
 \\\\
 The alternative approaches to performing this task are discussed in section \ref{design-db-previous-work}. These tools have the following performance metrics:
 \begin{itemize}
@@ -219,75 +219,77 @@ Due to the relatively recent publication of TokenAnalyst's article describing th
 \\\\
 Since TokenAnalyst performed the job of populating a database with Bitcoin data in two core steps, first downloading then importing, as we did, we can also compare our respective times to download and write all Bitcoin transactions to CSV.
 \\\\\
-TokenAnalyst are able to achieve writing all Bitcoin data to CSV in 6 hours, compared to our 12 hours [see section \ref{section-blockchain-download}]. Again, greater physical resources will have given them greater ability to parallelise the workload and achieve better performance. However, one weakness in our approach is the necessity to manually intervene between sub-jobs (i.e between the download of blocks 100k-200k and 201k-300k etc). This was done in order to mitigate the consequences of the overall job failed, however, this mitigation could be replicated in an automated fashion in order to reduce idle time across the download period. 
+TokenAnalyst are able to achieve writing all Bitcoin data to CSV in 6 hours, compared \textit{Astrolabe} taking 12 hours [see section \ref{section-blockchain-download}]. Again, greater physical resources will have given them greater ability to parallelise the workload and achieve better performance. However, one weakness of \textit{Astrolabe} is the necessity to manually intervene between sub-jobs (i.e between the download of blocks 100k-200k and 201k-300k etc). This was done in order to mitigate the consequences of the overall job failed, however, this mitigation could be replicated in an automated fashion in order to reduce idle time across the download period. 
 
 \section{Performing a historical investigation}
 As described earlier in section \ref{background:significant-thefts}, there are several well-known thefts of Bitcoin exchanges, where very large sums of bitcoin were stolen. Using simple information available for these thefts, such as the wallet name and the date, we show how \textit{Radar} can be used to provide a better understanding into the flow of bitcoin funds away from its rightful owner.
 \\\\
-One example we use is the Linode Hacks which targeted bitcoinica.com on the 1st March 2012. We used this wallet name (bitcoinica.com-old) as a starting point of the investigation, only looking at transactions for the date 1st March 2012. 
+One example we use is the Linode Hacks which targeted \textit{Bitcoinica.com} on the 1st March 2012. We used this wallet name (\textit{bitcoinica.com-old}) as a starting point of the investigation, only looking at transactions for the date 1st March 2012. 
 \\\\
 Initially, we searched for the wallet name with a date filter only. This rendered the view shown in figure \ref{fig:theft-no-filter}.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width = 15cm]{./figures/theft-all-txs-1st-march}\\[0.5cm]
-  \caption{A screenshot of the view when searching for entity Bitcoinica.com, filtered by date on 1st March 2012 only}.
+  \caption{A screenshot of the view when searching for entity \textit{Bitcoinica.com}, filtered by date on 1st March 2012 only}.
   \label{fig:theft-no-filter}
 \end{figure}
 
 Obviously the huge amount of information shown in figure \ref{fig:theft-no-filter} is not feasible to digest and understand; therefore we navigated back to the search form to start refining the filters to help better specify what we are looking for. 
 \\\\
-I first added price filters in order to show only the high value transactions on the 1st of March; we filtered transactions to only show outputs that were spent of value more than $1000BTC$. 
+We first added price filters in order to show only the high value transactions on the 1st of March; we filtered transactions to only show outputs that were spent of value more than $1000BTC$. 
 \\\\
-I then proceeded to inspect the outputs that were spent on the 1st of March that were of the greatest value [see fig \ref{fig:theft-highest-value-outputs}]. By doing so, and expanding out several other high value outputs spent on that day, we were able to identify transactions that spent a large amount of funds. We considered these transactions as suspicious.
+We then proceeded to inspect the outputs that were spent on the 1st of March that were of the greatest value [see fig \ref{fig:theft-highest-value-outputs}]. By doing so, and expanding out several other high value outputs spent on that day, we were able to identify transactions that spent a large amount of funds. We considered these transactions as suspicious.
 \\\\
 The suspicious transactions we identified through this process due to the size of funds they spent on this day were:
+
 \begin{itemize}
 \item \texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}: This transaction in total spent \textbf{20,555.1 BTC} - sending all \textbf{20,555 BTC} to one address and \textbf{0.01 BTC} to another. Using the neighbour expansion feature, we traced the bulk of the funds: 
 
-20555BTC to 1DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif\\
-25000BTC to 128u4nNS2DCbPk61aNAXLUTsHZt5FAEtit
-24900BTC to 18E4d3JtQNyUBdxQ4y8ck6RUKXEb7W4KA7
-23900BTRC to 1D56cDkVmoNGw7YmewL5boFwHyzEgDpygE
-23399BTC to 1LJn39nzrwqM8MkevfSDCa1uVZCgJSTMtq
-22399BTC to 13Fd5f8yFZCAAbtKQiNcWUmdbUNpVpznA6
-21899BTC 1HZHp77ftbAEy4PQc8wuAahvPnpZHKMfmc
-16899BTC 1Czhv7mDRNPMrzU9Ja7QkYSAvforGKQ2mv + 500BTC to 1Q3bsvTBcWF32Bt8FZgKAx7s43crvN9RVi (did not spend same day until July 31st 2012)
-16900 to 1Q3bsvTBcWF32Bt8FZgKAx7s43crvN9RVi (spent next day on second of march)
-17000 to 1BKF8kXHsNdQk6f5FognK4ZJCCBifE8ugm
-15476 to 1MXe7zFRHx9KMwGKAGi2GvTbsHFDgVjcEw
-12544 to 15GPUomoHVJbBsgY6eWdsKKaV3dywL5poj
-12044 to 12F1GhUbVJvNW6ki1fRG1ZgeTkm2FixLLi
-
-
-[9264 to 14Qr38dfmXZJUuxYaJxaTjg7yYcj5GDTqy - supernode cluster which 1BKF8kXHsNdQk6f5FognK4ZJCCBifE8ugm with earlier 17000 was paid to]
-
-Supernodes then collect funds in tx, sends 9751 to 18ywk3t8XFtkEqMJt8hPG14D3gzTshB4YW
-
-Does not spend funds till 4th August 2012
-This seems to be the beginning of another chain, spending sums of 100-1000 BTC (usually round numbers such as 100m 200, 500 etc) in each transaction, each transaction having only two outputs until the main large funds reduce down to just over 1000BTC with transaction fbab826df674b1e2ae3bedfc566f2692b8940ac1058605fe549753b34ebd8f0d. This seems to be the end of the peeling chain, as transactions now have several inputs and smaller outputs aren't round numbers, more common to normal spending, therefore and look less characteristic of a peeling chain. 
-
-
-At this point, we wished to continue the investigation by following the address 1Q3bsvTBcWF32Bt8FZgKAx7s43crvN9RVi into the next day. 
-
 \item \texttt{0268b7285b95444808753969099f7ae43fb4193d442e3e0deebb10e2bb1764d0}
-
-
-This was a sum of 10000 BTC sent to address 1AaXeH5DuP6FpPxdCn9RGXKWhSG4r9Hq9q. Not spent until March 27th 2012.
-
 
 \item \texttt{a82ad85286c68f37a2feda1f5e8a4efa9db1e642b4ef53cb9fd86170169e5e68}
 \item \texttt{a57132e2cbc580ac262aa3f7bac1e441d6573f9633118bc48009618585a0967e}
 \item \texttt{901dbcef30a541b8b55fae8f7ad9917ef0754bda5b643705f3773e590785c4d3}
-\item 
-
 \end{itemize}
+We were able to verify these transactions as suspicious by searching for information relating to these transactions and discovering the post announcing this hack and the suspicious transactions identified at the time. 
+\\\\
+To attempt to simulate what an investigation may involve, we attempt to trace/understand the flow and destination of funds taken in traction \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}:
+\begin{enumerate}
+    \item \textbf{20555BTC} to \texttt{1DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif}
+    \item \textbf{25000BTC} to \texttt{128u4nNS2DCbPk61aNAXLUTsHZt5FAEtit}
+    \item \textbf{24900BTC} to \texttt{18E4d3JtQNyUBdxQ4y8ck6RUKXEb7W4KA7}
+    \item \textbf{23900BTC} to \texttt{1D56cDkVmoNGw7YmewL5boFwHyzEgDpygE}
+    \item \textbf{23399BTC} to \texttt{1LJn39nzrwqM8MkevfSDCa1uVZCgJSTMtq}
+    \item \textbf{22399BTC} to \texttt{13Fd5f8yFZCAAbtKQiNcWUmdbUNpVpznA6}
+    \item \textbf{21899BTC} to \texttt{1HZHp77ftbAEy4PQc8wuAahvPnpZHKMfmc}
+    \item \textbf{16899BTC} to \texttt{1Czhv7mDRNPMrzU9Ja7QkYSAvforGKQ2mv}
+    \begin{enumerate}
+        \item \textbf{5000BTC} to \texttt{1Q3bsvTBcWF32Bt8FZgKAx7s43crvN9RVi}
+    \end{enumerate}
+    \item \textbf{16900BTC} to \texttt{1Q3bsvTBcWF32Bt8FZgKAx7s43crvN9RVi}
+    \item \textbf{17000BTC} to \texttt{1BKF8kXHsNdQk6f5FognK4ZJCCBifE8ugm}
+    \item \textbf{15476BTC} to \texttt{1MXe7zFRHx9KMwGKAGi2GvTbsHFDgVjcEw}
+    \item \textbf{12544BTC} to \texttt{15GPUomoHVJbBsgY6eWdsKKaV3dywL5poj}
+    \item \textbf{12044BTC} to \texttt{12F1GhUbVJvNW6ki1fRG1ZgeTkm2FixLLi}
+\end{enumerate}
+The main stream of funds make its way to \texttt{18ywk3t8XFtkEqMJt8hPG14D3gzTshB4YW} where funds are now not spent until 4th August 2012. This seems to be the beginning of another chain, spending sums of 100-1000 BTC (usually round numbers such as 100m 200, 500 etc) in each transaction, each transaction having only two outputs until the main large funds reduce down to just over 1000BTC with transaction \\\texttt{fbab826df674b1e2ae3bedfc566f2692b8940ac1058605fe549753b34ebd8f0d}. This seems to be the end of the peeling chain, as transactions now have several inputs and smaller outputs aren't round numbers, more common to normal spending, therefore and look less characteristic of a peeling chain. 
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width = 15cm]{./figures/theft-high-value-tx}\\[0.5cm]
-  \caption{A screenshot of the view when searching for entity Bitcoinica.com, filtered by date on 1st March 2012 and by price, showing outputs spent with value > 1000BTC. Showing specifically the transaction spending the highest value outputs}.
+  \caption{A screenshot of the view when searching for entity \textit{Bitcoinica.com}, filtered by date on 1st March 2012 (\textit{note: filtered by the date outputs are spent}) and by price, showing outputs spent with value $>$ 1000BTC. Showing specifically the transaction spending the highest value outputs}.
   \label{fig:theft-highest-value-outputs}
+\end{figure}
+
+The tool has clearly helped us identify the signature of a peeling chain; a visual representation of the peeling chain (showing the main addresses and flow of funds) can be seen in figure \ref{fig:bitcoinica-peel-chain}; the nodes of the same colour are addresses that were clustered into a supernode using the 'same-input' heuristic. This shows that many of the funds from the chain end up in a cluster controlled by the same user; therefore making the obscuring efforts of the peeling chain more transparent. 
+
+Clearly clustering has helped 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width = 15cm]{./figures/bitcoinicapeelingchain}\\[0.5cm]
+  \caption{A visual representation of the peeling chain discovered using \textit{Radar} while investigating the 1st March 2012 \textit{Bitcoinica.com} theft}.
+  \label{fig:bitcoinica-peel-chain}
 \end{figure}
 
 \subsection{Areas identified for improvement}
@@ -304,33 +306,27 @@ identify outputs to which addresses in supernode
 ability to check if an address belongs to a supernode 
 
 
-\subsection{Missed Objectives}
-\todo{complete}
-Continuous updates via Kafka
-Change address clustering
+\section{Missed Objectives}
+An objective of this project that we unfortunately did not have time to complete was applying same change address clustering in section \ref{section-clustering}. This was due to the clustering algorithm not completing in the allotted time for this project. Although the feature was not complete, the outline of the algorithm required for implementing this feature can be found in future work section \ref{conclusion:change-address-clustering}. 
 
-\todo{drawback - only up to block 570k}
 
-only using one source for entity information 
-
-metrics for number of clicks etrc
+\todo{only using one source for entity information }
 
 \todo{path finding correctness test}
 
-multi input is now a thing - https://ieeexplore.ieee.org/abstract/document/8260674
-
-evaluate using sarah micklejogn exampel 
 
 
-\subsection{Clustering Correctness}
+
+
+\section{Clustering Correctness}
 We can verify the correctness of clustering by immediate neighbours by searching for a transaction known to have several inputs locked to distinct addresses. For example, we were able to verify the correctness of clustering with immediate neighbours using address \texttt{17jkFTQuYaGssazzqZ6CTHgRVQYRgLmf34}. This address inputs transaction \\\texttt{8897ea9ceaf18a546cdc513b9179bae31a462ee5bf47818eb7ba909082d11777}, and also has inputs from 9 other distinct addresses. The clustering algorithm then produces a cluster of 10 addresses that are considered to be controlled by the same user. 
 \\\\
-I now verify the transitive clustering behaviour of the algorithm.  
+We now verify the transitive clustering behaviour of the algorithm.  
 To achieve this, we mutated a local Neo4J database containing a subset of the Bitcoin Blockchain (only blocks 0-2000). 
 \\\\
-I manually located an instance of addresses that can be clustered transitively using this heurisitc. The visual representation of the connections existing between two transitively linked addresses can be seen in figure \ref{fig:neo4j-transitive-clustering-screenshot}. The 3 addresses in this screenshot (in green) are \texttt{15oUEZFKAC8E8BTLt1s1jx4fPxumwB3ecr}, \texttt{17iqXQcGfjjHSsJK993mu75sPBnLFSEp8F} and \texttt{1Js6Nx1822qSjETsnp2kkhQFwmRNRWxgak}. They are linked through two transactions (in blue) \texttt{04dc7226529763e8c15d58171d1ac1e28cb6b8d3165005765e65757c7b219d2d} and \texttt{c7a4bb767027a4382462c32b6a824a53e2715d833c0d86e9676a4fbddedca0a9}. 
+We manually located an instance of addresses that can be clustered transitively using this heurisitc. The visual representation of the connections existing between two transitively linked addresses can be seen in figure \ref{fig:neo4j-transitive-clustering-screenshot}. The 3 addresses in this screenshot (in green) are \texttt{15oUEZFKAC8E8BTLt1s1jx4fPxumwB3ecr}, \texttt{17iqXQcGfjjHSsJK993mu75sPBnLFSEp8F} and \texttt{1Js6Nx1822qSjETsnp2kkhQFwmRNRWxgak}. They are linked through two transactions (in blue) \texttt{04dc7226529763e8c15d58171d1ac1e28cb6b8d3165005765e65757c7b219d2d} and \texttt{c7a4bb767027a4382462c32b6a824a53e2715d833c0d86e9676a4fbddedca0a9}. 
 \\\\
-I was able to verify that executing the clustering algorithm included all 3 of these addresses in the result, and became confident of the correct transitive behaviour of the implementation of the clustering algorithm. 
+We were able to verify that executing the clustering algorithm included all 3 of these addresses in the result, and became confident of the correct transitive behaviour of the implementation of the clustering algorithm. 
 
 \begin{figure}[h!]
   \centering
@@ -343,10 +339,10 @@ I was able to verify that executing the clustering algorithm included all 3 of t
 As described in the background section \ref{background-existing-tools}, there currently exist some tools, both free and proprietary, that could be used to help carry out a digital forensic investigation. In this section, we compare the tool developed in this project both qualitatively and quantitatively.
 
 \subsection{Wallet Explorer}
-Given the example above, where we would like to investigate a theft that occurred from Bitcoinica.com, we would need to take the following steps on the Wallet Explorer site:
+Given the example above, where we would like to investigate a theft that occurred from \textit{Bitcoinica.com}, we would need to take the following steps on the Wallet Explorer site:
 \begin{itemize}
-    \item Navigate to walletexplorer.com \textbf{one click}
-    \item Click bitcoinica.com old \textbf{one click}
+    \item Navigate to \textit{walletexplorer.com} \textbf{one click}
+    \item Click \textit{bitcoinica.com old} \textbf{one click}
     \item Scan the transactions date table for a date matching 1st March 2012 (the theft date): this required using the table pagination controls until transactions for March 1st 2012 shows : \textbf{one click}
     \item We now search for the large transaction values and see a outgoing transaction of 20,555 BTC and inspect that transaction \textbf{one click}. TXID is \\\texttt{    7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}
     \item We see the output address of transaction is \texttt{ 1DMuVKe9PKpx3dbs2b2MnXuVmLfA4drHif} \textbf{one click}
@@ -357,7 +353,7 @@ Given the example above, where we would like to investigate a theft that occurre
 In comparison, the steps taken to obtain similar data using \textit{Radar} developed in this project are:
 \begin{itemize}
     \item Navigate to \textit{Radar}: \textbf{one click}
-    \item \textbf{One click} to initiate the search for the 'Bitcoinica.com' wallet with all date and price filter applies such that only nodes for 1st March are shown and only transactions of high BTC value are shown 
+    \item \textbf{One click} to initiate the search for the \textit{Bitcoinica.com} wallet with all date and price filter applies such that only nodes for 1st March are shown and only transactions of high BTC value are shown 
     \item Can instantly identify the high value transaction \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732} so can trace the funds from that output by double-clicking and seeing the address \\\texttt{128u4nNS2DCbPk61aNAXLUTsHZt5FAEtit} : \textbf{one click}
     \item Can now follow the peeling chain for one click for each step \textbf{n clicks for n steps of the peeling chain}
 \end{itemize}
@@ -372,7 +368,7 @@ Additionally, a factor not considered in the above click metric is if the user w
 \subsection{Blockchain Explorer}
 We compare the functionality of \textit{Radar} to that provided by Blockchain Explorer [see \ref{background:blockchain-explorer}]; we do not use the clicks metrics as before due to variations in the functionality provided by each tool. Therefore, we carry out a qualitative comparison.
 \\\\
-Blockchain explorer does not provide the functionality to search by an entity name such as 'Bitcoinica.com'; therefore, we would struggle to identify the transactions related to a theft from this entity. 
+Blockchain explorer does not provide the functionality to search by an entity name such as \textit{Bitcoinica.com}; therefore, we would struggle to identify the transactions related to a theft from this entity. 
 \\\\
 Skipping the step of identifying suspicious transactions and presuming we had a particular transaction of interest, such \texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}. At this point, we have similar functionality as provided by Wallet Explorer and can follow links to see each transaction in isolation and trace the peeling chain, but with the same drawbacks in comparison to \textit{Radar} that it does not show the whole path. 
 \\\\
@@ -381,9 +377,9 @@ A feature that Blockchain Explorer does provide is a conversion into USD; howeve
 \subsection{Blockpath}
 We compare the functionality offered by Blockpath [see \ref{background:blockpath}] to \textit{Radar}. Again, we do not use the clicks metric as before due to vast variations in the functionality offered. Therefore, we carry out a qualitative comparison only,
 \\\\
-Similar to Blockchain Explorer, Blockpath provides the ability to search for particular transactions and addresses, but not the ability to find all activity for an entity such as 'Bitcoinica.com', so it would be difficult to use this tool to identify a suspicious address. 
+Similar to Blockchain Explorer, Blockpath provides the ability to search for particular transactions and addresses, but not the ability to find all activity for an entity such as \textit{Bitcoinica.com}, so it would be difficult to use this tool to identify a suspicious address. 
 \\\\
-A distinguishing feature Blockpath provides that the other tools do not is a graphical interface. Using a given suspicious transaction ID \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}, we attempt to follow the peeling chain using the graphical interface. Similar to \textit{Radar}, funds can be followed by double clicking on nodes which will expand the next step in the flow of funds. 
+A distinguishing feature Blockpath provides that the other tools do not is a graphical interface. Using a given suspicious transaction ID \\\texttt{7b45c1742ca9f544cccd92d319ef8a5e19b7dcb8742990724c6a9c2f569ae732}, we attempt to follow the peeling chain using the graphical interface. Similar to \textit{Radar}, funds can be followed by double clicking on nodes which will expand the next step in the flow of funds.
 \\\\
 A feature of Blockpath's graph visualisation which we believe is very useful is the timeline on the left-hand side [see fig \ref{fig:blockpath-graph-ui-time-organisation}], and organisation of nodes vertically based on their timestamps. The organisation of nodes in Blockpath's graph visualisation is, therefore, more meaningful than in \textit{Radar}, where the arrangement is random. 
 \\\\
@@ -402,3 +398,17 @@ However, Blockpath does not provide the option to filter such that only transact
   \caption{A screenshot of the Blockpath graphical interface feature, also showing timeline.}
   \label{fig:blockpath-graph-ui-time-organisation}
 \end{figure}
+
+
+\section{Risks}
+The greatest element of risk was posed by the import task conducted in section \ref{section-blockchain-import}; having a functioning graph database populated with historical Bitcoin data was the foundation upon all other contributions in this project were based on. It was therefore crucial that this deliverable of the project was successful at an early stage. 
+\\\\
+Another significant element of risk is the overhead of interacting with data in such a vast dataset; without careful consideration of query performance and latencies, much of the functionality would become unusable. 
+
+
+\section{Summary}
+test
+
+
+
+
