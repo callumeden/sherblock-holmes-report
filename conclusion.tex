@@ -31,10 +31,10 @@ Leveraging all CPU cores by parallelising tasks greatly expedited the time taken
 \section{Future Work}
 Through our own vision of the end product of this tool, our discussions with the Metropolitan Police and Coinbase and through process of evaluating the tool's performance and ability to investigate historical thefts, we have curated a series of improvements and future directions to take this project with the end goal of building a tool for professional use. 
 
-\subsection{Infrastructure for keeping database up to date}
+\subsection{Infrastructure for keeping database up to date}\label{future-work:keep-up}
 One of the highest priority features for extending this project will be to implement the infrastructure required for keeping the Neo4J database up to date with the latest Bitcoin data. This will additionally include extending work in section \ref{section-entity-tagging} and \ref{section-price-data} to collect the latest wallet clustering information and exchange rate information for the new Bitcoin data. This has the goal of having a Neo4J database that reflects the current state of the Bitcoin Blockchain and will keep up to date autonomously, requiring no maintenance or physical intervention to do so. 
 
-\subsection{Path Finding User Experience}
+\subsection{Path Finding User Experience}\label{future-work:path-finding}
 As shown in the evaluation, section \ref{evaluation:performance-under-load}, several concurrent path finding requests may lead to denial of service for several users. Additionally shown in the evaluation when profiling a single path finding request, section \ref{evaluation:path-finding-profile}, the performance and user experience still has much to be desired. 
 \\\\
 We believe a solution to improving the user experience to path finding could be to transform path finding from an interactive function to an asynchronous one. Path finding across such a huge data-set is a very resource intensive operation; solutions could include further investment in hardware, such as purchasing more physical hardware or delegating path finding to a container-based cloud solution. However, without this investment there is little that can be done to reduce the demand on resources that path finding requires. Therefore, an alternative solution could be to change path finding into a background job that takes a lower precedent to the other interactive tasks such as searching for an address. 
